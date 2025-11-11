@@ -1,0 +1,2478 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6",
+    "name": "ReviselaAPI",
+    "description": "Collection for testing the Revisela API authentication and user management endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.revisela.com",
+      "type": "string",
+      "description": "API base URL"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string",
+      "description": "Authentication token"
+    },
+    {
+      "key": "folderId",
+      "value": "",
+      "type": "string",
+      "description": "Folder ID"
+    },
+    {
+      "key": "quizId",
+      "value": "",
+      "type": "string",
+      "description": "Quiz ID"
+    },
+    {
+      "key": "parentFolderId",
+      "value": "",
+      "type": "string",
+      "description": "Parent folder ID"
+    },
+    {
+      "key": "classId",
+      "value": "",
+      "type": "string",
+      "description": "Class ID"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.globals.set(\"authToken\", jsonData.access_token);",
+                  "    console.log(\"Auth token saved from registration\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test User\",\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.globals.set(\"authToken\", jsonData.access_token);",
+                  "    console.log(\"Auth token saved from login\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New User\",\n    \"username\": \"newuser\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Create a new user (requires admin)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Get all users"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "userId",
+                  "description": "User ID to fetch"
+                }
+              ]
+            },
+            "description": "Get a user by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by Email",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/email/:email",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "email", ":email"],
+              "variable": [
+                {
+                  "key": "email",
+                  "value": "test@example.com",
+                  "description": "Email to search for"
+                }
+              ]
+            },
+            "description": "Get a user by email"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Name\",\n    \"password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "userId",
+                  "description": "User ID to update"
+                }
+              ]
+            },
+            "description": "Update a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "userId",
+                  "description": "User ID to delete"
+                }
+              ]
+            },
+            "description": "Delete a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile", "me"]
+            },
+            "description": "Get the current user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Profile Image",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": "/path/to/your/profile.jpg",
+                  "description": "Profile image file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/uploads/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads", "profile"]
+            },
+            "description": "Upload a profile image (max 5MB)"
+          },
+          "response": []
+        }
+      ],
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Quizzes",
+      "item": [
+        {
+          "name": "Create Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"JavaScript Basics\",\n  \"description\": \"Test your JavaScript knowledge with this quiz\",\n  \"tags\": [\"javascript\", \"programming\", \"web development\"],\n  \"isPublic\": true,\n  \"questions\": [\n    {\n      \"type\": \"flashCard\",\n      \"question\": \"What is JavaScript?\",\n      \"answer\": \"JavaScript is a high-level, interpreted programming language that conforms to the ECMAScript specification.\",\n      \"image\": \"https://example.com/javascript-logo.png\"\n    },\n    {\n      \"type\": \"mcq\",\n      \"question\": \"Which of the following is not a JavaScript data type?\",\n      \"answer\": \"float\",\n      \"options\": [\n        {\"label\": \"String\", \"value\": \"string\"},\n        {\"label\": \"Number\", \"value\": \"number\"},\n        {\"label\": \"Boolean\", \"value\": \"boolean\"},\n        {\"label\": \"Float\", \"value\": \"float\"},\n        {\"label\": \"Object\", \"value\": \"object\"}\n      ]\n    },\n    {\n      \"type\": \"fillIn\",\n      \"question\": \"Complete the code: const greeting = \\\"Hello, \\\" + ___;\",\n      \"answer\": \"name\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"]
+            },
+            "description": "Create a new quiz"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes?limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get all public quizzes with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Quiz by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "quizId",
+                  "description": "Quiz ID to fetch"
+                }
+              ]
+            },
+            "description": "Get a quiz by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Quizzes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/my-quizzes?limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "my-quizzes"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get all quizzes created by the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/search?q=javascript&limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "javascript",
+                  "description": "Search query"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Search quizzes by title, description, or tags"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Quizzes by Tag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/tags/:tag?limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "tags", ":tag"],
+              "variable": [
+                {
+                  "key": "tag",
+                  "value": "javascript",
+                  "description": "Tag to filter by"
+                }
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get quizzes filtered by tag"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated JavaScript Basics\",\n  \"description\": \"Updated description for JavaScript basics quiz\",\n  \"tags\": [\"javascript\", \"programming\", \"web development\", \"beginner\"],\n  \"isPublic\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "quizId",
+                  "description": "Quiz ID to update"
+                }
+              ]
+            },
+            "description": "Update a quiz (only quiz creator can update)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID to delete"
+                }
+              ]
+            },
+            "description": "Move a quiz to trash (soft delete)"
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Duplicated Quiz\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/:id/duplicate",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", ":id", "duplicate"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID to duplicate"
+                }
+              ]
+            },
+            "description": "Create a duplicate of a quiz with all its questions"
+          },
+          "response": []
+        },
+        {
+          "name": "Bookmark Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"bookmarked\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/:id/bookmark",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", ":id", "bookmark"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID to bookmark"
+                }
+              ]
+            },
+            "description": "Bookmark or unbookmark a quiz"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bookmarked Quizzes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/bookmarked",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "bookmarked"]
+            },
+            "description": "Get all quizzes bookmarked by the user"
+          },
+          "response": []
+        },
+        {
+          "name": "Move Quiz to Trash",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID to move to trash"
+                }
+              ]
+            },
+            "description": "Move a quiz to trash (soft delete). Only the quiz creator can move it to trash."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Quizzes in Trash",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/trash",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "trash"]
+            },
+            "description": "Get all quizzes in the trash belonging to the user"
+          },
+          "response": []
+        },
+        {
+          "name": "Restore Quiz from Trash",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/trash/:id/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "trash", ":id", "restore"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID to restore from trash"
+                }
+              ]
+            },
+            "description": "Restore a quiz from trash. Only the quiz creator can restore it."
+          },
+          "response": []
+        },
+        {
+          "name": "Permanently Delete Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/trash/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "trash", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID to permanently delete"
+                }
+              ]
+            },
+            "description": "Permanently delete a quiz from trash. Only the quiz creator can permanently delete it."
+          },
+          "response": []
+        }
+      ],
+      "description": "Quiz management endpoints"
+    },
+    {
+      "name": "File Uploads",
+      "item": [
+        {
+          "name": "Upload File",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/file.jpg",
+                  "description": "Image or audio file (15MB max)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/uploads",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads"]
+            },
+            "description": "Upload an image or audio file (max 15MB). Returns the file key, presigned URL, and file type."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Profile Image",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": "/path/to/your/profile.jpg",
+                  "description": "Profile image file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/uploads/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads", "profile"]
+            },
+            "description": "Upload a profile image (max 5MB)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Presigned URL",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/uploads/:key",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads", ":key"],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "images/12345.jpg",
+                  "description": "S3 object key"
+                }
+              ]
+            },
+            "description": "Get a presigned URL for accessing a file"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/uploads/:key",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads", ":key"],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "images/12345.jpg",
+                  "description": "S3 object key to delete"
+                }
+              ]
+            },
+            "description": "Delete a file from S3"
+          },
+          "response": []
+        }
+      ],
+      "description": "File upload endpoints"
+    },
+    {
+      "name": "Folders",
+      "item": [
+        {
+          "name": "Create Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Study Materials\",\n    \"description\": \"My collection of study materials\",\n    \"publicAccess\": \"none\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders"]
+            },
+            "description": "Create a new folder"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Subfolder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"JavaScript\",\n    \"description\": \"JavaScript study materials\",\n    \"parentFolder\": \"{{parentFolderId}}\",\n    \"publicAccess\": \"none\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders"]
+            },
+            "description": "Create a subfolder within a parent folder"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Folders",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders"]
+            },
+            "description": "Get all folders owned by or shared with the user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Folder by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to fetch"
+                }
+              ]
+            },
+            "description": "Get a folder by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Folder Name\",\n    \"description\": \"Updated folder description\",\n    \"publicAccess\": \"view_only\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to update"
+                }
+              ]
+            },
+            "description": "Update a folder's properties"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to delete"
+                }
+              ]
+            },
+            "description": "Delete a folder (only owner or admin can delete)"
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Duplicated Folder\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id/duplicate",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id", "duplicate"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to duplicate"
+                }
+              ]
+            },
+            "description": "Duplicate a folder including all of its subfolders and quizzes"
+          },
+          "response": []
+        },
+        {
+          "name": "Bookmark Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"bookmarked\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id/bookmark",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id", "bookmark"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to bookmark"
+                }
+              ]
+            },
+            "description": "Bookmark or unbookmark a folder"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bookmarked Folders",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/bookmarked",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", "bookmarked"]
+            },
+            "description": "Get all folders bookmarked by the user"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Quiz to Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id/quizzes/:quizId",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id", "quizzes", ":quizId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID"
+                },
+                {
+                  "key": "quizId",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID to add to the folder"
+                }
+              ]
+            },
+            "description": "Add a quiz to a folder"
+          },
+          "response": []
+        },
+        {
+          "name": "Move Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetFolderId\": \"{{targetFolderId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id/move",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id", "move"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "ID of the folder to move"
+                }
+              ]
+            },
+            "description": "Move a folder to another folder. The folder being moved will become a subfolder of the target folder. This endpoint handles all necessary parent-child relationship updates and prevents cyclic dependencies."
+          },
+          "response": []
+        },
+        {
+          "name": "Move Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetFolderId\": \"{{targetFolderId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders/quizzes/:quizId/move",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", "quizzes", ":quizId", "move"],
+              "variable": [
+                {
+                  "key": "quizId",
+                  "value": "{{quizId}}",
+                  "description": "ID of the quiz to move"
+                }
+              ]
+            },
+            "description": "Move a quiz from its current folder(s) to a target folder. The quiz will be removed from all current folders and added to the target folder. You can move a quiz if you are either the quiz creator or have admin access to any folder containing the quiz."
+          },
+          "response": []
+        },
+        {
+          "name": "Share Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"emails\": [\"user@example.com\", \"another@example.com\"],\n    \"accessLevel\": \"member\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id", "share"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to share"
+                }
+              ]
+            },
+            "description": "Share a folder with other users via email"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Share Link",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id/share-link",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id", "share-link"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to generate share link for"
+                }
+              ]
+            },
+            "description": "Generate a shareable link for a folder"
+          },
+          "response": []
+        },
+        {
+          "name": "Move Folder to Trash",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to move to trash"
+                }
+              ]
+            },
+            "description": "Move a folder to trash (soft delete). Only the folder owner or admin can move it to trash."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Folders in Trash",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/trash",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", "trash"]
+            },
+            "description": "Get all folders in the trash belonging to or shared with the user"
+          },
+          "response": []
+        },
+        {
+          "name": "Restore Folder from Trash",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/trash/:id/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", "trash", ":id", "restore"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to restore from trash"
+                }
+              ]
+            },
+            "description": "Restore a folder from trash. Only the folder owner or admin can restore it."
+          },
+          "response": []
+        },
+        {
+          "name": "Permanently Delete Folder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/folders/trash/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", "trash", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID to permanently delete"
+                }
+              ]
+            },
+            "description": "Permanently delete a folder from trash. Only the folder owner or admin can permanently delete it."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder management endpoints"
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Create Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Advanced Mathematics\",\n    \"orgName\": \"Stanford University\",\n    \"publicAccess\": \"restricted\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"]
+            },
+            "description": "Create a new class. Only authenticated users can create classes."
+          },
+          "response": [
+            {
+              "name": "Example Response",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Advanced Mathematics\",\n    \"orgName\": \"Stanford University\",\n    \"publicAccess\": \"restricted\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/classes",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["classes"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"_id\": \"64a69b8ea0b5c68f4bcd1111\",\n    \"name\": \"Advanced Mathematics\",\n    \"orgName\": \"Stanford University\",\n    \"classCode\": \"ABC123\",\n    \"owner\": {\n        \"_id\": \"64a69b8ea0b5c68f4bcd5678\",\n        \"name\": \"Test User\",\n        \"username\": \"testuser\",\n        \"email\": \"test@example.com\"\n    },\n    \"members\": [],\n    \"quizzes\": [],\n    \"folders\": [],\n    \"publicAccess\": \"restricted\",\n    \"isActive\": true,\n    \"isArchived\": false,\n    \"createdAt\": \"2023-07-06T12:00:00.000Z\",\n    \"updatedAt\": \"2023-07-06T12:00:00.000Z\",\n    \"isOwner\": true,\n    \"userAccessLevel\": \"owner\",\n    \"memberCount\": 0\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Classes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"]
+            },
+            "description": "Get all classes for the authenticated user (owned and joined)"
+          },
+          "response": [
+            {
+              "name": "Example Response",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/classes",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["classes"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "[\n    {\n        \"_id\": \"64a69b8ea0b5c68f4bcd1111\",\n        \"name\": \"Advanced Mathematics\",\n        \"orgName\": \"Stanford University\",\n        \"classCode\": \"ABC123\",\n        \"owner\": {\n            \"_id\": \"64a69b8ea0b5c68f4bcd5678\",\n            \"name\": \"Test User\",\n            \"username\": \"testuser\",\n            \"email\": \"test@example.com\"\n        },\n        \"members\": [\n            {\n                \"user\": {\n                    \"_id\": \"64a69b8ea0b5c68f4bcd9999\",\n                    \"name\": \"Student User\",\n                    \"username\": \"student1\",\n                    \"email\": \"student1@example.com\"\n                },\n                \"accessLevel\": \"member\",\n                \"joinedAt\": \"2023-07-06T13:00:00.000Z\"\n            }\n        ],\n        \"quizzes\": [],\n        \"folders\": [],\n        \"publicAccess\": \"restricted\",\n        \"isActive\": true,\n        \"isArchived\": false,\n        \"createdAt\": \"2023-07-06T12:00:00.000Z\",\n        \"updatedAt\": \"2023-07-06T12:00:00.000Z\",\n        \"isOwner\": true,\n        \"userAccessLevel\": \"owner\",\n        \"memberCount\": 1\n    }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Get Class by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Get a specific class by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Advanced Mathematics - Updated\",\n    \"orgName\": \"MIT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Update a class. Only class owner or admin can update."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Delete a class. Only class owner or admin can delete."
+          },
+          "response": []
+        },
+        {
+          "name": "Join Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"classCode\": \"ABC123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "join"]
+            },
+            "description": "Join a class using class code"
+          },
+          "response": [
+            {
+              "name": "Example Response",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"classCode\": \"ABC123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/classes/join",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["classes", "join"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"_id\": \"64a69b8ea0b5c68f4bcd1111\",\n    \"name\": \"Advanced Mathematics\",\n    \"orgName\": \"Stanford University\",\n    \"classCode\": \"ABC123\",\n    \"owner\": {\n        \"_id\": \"64a69b8ea0b5c68f4bcd5678\",\n        \"name\": \"Test User\",\n        \"username\": \"testuser\",\n        \"email\": \"test@example.com\"\n    },\n    \"members\": [\n        {\n            \"user\": {\n                \"_id\": \"64a69b8ea0b5c68f4bcd9999\",\n                \"name\": \"Current User\",\n                \"username\": \"currentuser\",\n                \"email\": \"current@example.com\"\n            },\n            \"accessLevel\": \"member\",\n            \"joinedAt\": \"2023-07-06T14:00:00.000Z\"\n        }\n    ],\n    \"isOwner\": false,\n    \"userAccessLevel\": \"member\",\n    \"memberCount\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Leave Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/leave",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "leave"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Leave a class"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Members to Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"emails\": [\"student1@example.com\", \"student2@example.com\"],\n    \"accessLevel\": \"member\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "members"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Add members to class by email. Only class owner or admin can add members."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Member Access Level",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"accessLevel\": \"collaborator\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/members/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "members", ":userId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                },
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "description": "User ID"
+                }
+              ]
+            },
+            "description": "Update member access level. Only class owner or admin can update member access."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Member from Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/members/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "members", ":userId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                },
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "description": "User ID"
+                }
+              ]
+            },
+            "description": "Remove member from class. Only class owner or admin can remove members."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Quiz to Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"quizId\": \"64a69b8ea0b5c68f4bcd9012\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/quizzes",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "quizzes"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Add quiz to class. Only class owner or collaborator can add quizzes."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Quiz from Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/quizzes/:quizId",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "quizzes", ":quizId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                },
+                {
+                  "key": "quizId",
+                  "value": "{{quizId}}",
+                  "description": "Quiz ID"
+                }
+              ]
+            },
+            "description": "Remove quiz from class. Only class owner or collaborator can remove quizzes."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Folder to Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"folderId\": \"64a69b8ea0b5c68f4bcd1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/folders",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "folders"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Add folder to class. Only class owner or collaborator can add folders."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Folder from Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/folders/:folderId",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "folders", ":folderId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                },
+                {
+                  "key": "folderId",
+                  "value": "{{folderId}}",
+                  "description": "Folder ID"
+                }
+              ]
+            },
+            "description": "Remove folder from class. Only class owner or collaborator can remove folders."
+          },
+          "response": []
+        },
+        {
+          "name": "Archive Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "archive"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Archive a class. Only class owner or admin can archive."
+          },
+          "response": []
+        },
+        {
+          "name": "Restore Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", ":id", "restore"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{classId}}",
+                  "description": "Class ID"
+                }
+              ]
+            },
+            "description": "Restore an archived class. Only class owner or admin can restore."
+          },
+          "response": []
+        }
+      ],
+      "description": "Class management endpoints"
+    },
+    {
+      "name": "Shared",
+      "item": [
+        {
+          "name": "Get All Shared Content",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["shared"]
+            },
+            "description": "Get all content shared with the current user (folders and quizzes)"
+          },
+          "response": [
+            {
+              "name": "Example Response",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/shared",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["shared"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"folders\": [\n            {\n                \"_id\": \"64a69b8ea0b5c68f4bcd1234\",\n                \"name\": \"Math Study Materials\",\n                \"description\": \"Shared math resources\",\n                \"owner\": {\n                    \"_id\": \"64a69b8ea0b5c68f4bcd5678\",\n                    \"name\": \"John Doe\",\n                    \"username\": \"johndoe\",\n                    \"email\": \"john@example.com\"\n                },\n                \"userAccessLevel\": \"collaborator\",\n                \"isBookmarked\": true,\n                \"type\": \"folder\",\n                \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n                \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n            }\n        ],\n        \"quizzes\": [\n            {\n                \"_id\": \"64a69b8ea0b5c68f4bcd9876\",\n                \"title\": \"Algebra Basics\",\n                \"description\": \"Basic algebra questions\",\n                \"tags\": [\"math\", \"algebra\"],\n                \"isPublic\": true,\n                \"createdBy\": {\n                    \"_id\": \"64a69b8ea0b5c68f4bcd5678\",\n                    \"name\": \"John Doe\",\n                    \"username\": \"johndoe\",\n                    \"email\": \"john@example.com\"\n                },\n                \"isBookmarked\": false,\n                \"type\": \"quiz\",\n                \"sharedVia\": {\n                    \"folderId\": \"64a69b8ea0b5c68f4bcd1234\",\n                    \"folderName\": \"Math Study Materials\",\n                    \"accessLevel\": \"collaborator\"\n                },\n                \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n                \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n            }\n        ],\n        \"totalCount\": {\n            \"folders\": 1,\n            \"quizzes\": 1,\n            \"total\": 2\n        }\n    },\n    \"message\": \"Found 2 shared items\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Shared Folders",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/shared/folders",
+              "host": ["{{baseUrl}}"],
+              "path": ["shared", "folders"]
+            },
+            "description": "Get only folders shared with the current user"
+          },
+          "response": [
+            {
+              "name": "Example Response",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/shared/folders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["shared", "folders"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"_id\": \"64a69b8ea0b5c68f4bcd1234\",\n            \"name\": \"Math Study Materials\",\n            \"description\": \"Shared math resources\",\n            \"owner\": {\n                \"_id\": \"64a69b8ea0b5c68f4bcd5678\",\n                \"name\": \"John Doe\",\n                \"username\": \"johndoe\",\n                \"email\": \"john@example.com\"\n            },\n            \"sharedWith\": [\n                {\n                    \"user\": {\n                        \"_id\": \"64a69b8ea0b5c68f4bcd9999\",\n                        \"name\": \"Current User\",\n                        \"username\": \"currentuser\",\n                        \"email\": \"current@example.com\"\n                    },\n                    \"accessLevel\": \"collaborator\"\n                }\n            ],\n            \"userAccessLevel\": \"collaborator\",\n            \"isBookmarked\": true,\n            \"type\": \"folder\",\n            \"publicAccess\": \"none\",\n            \"isInTrash\": false,\n            \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n            \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n        }\n    ],\n    \"count\": 1,\n    \"message\": \"Found 1 shared folders\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Shared Quizzes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/shared/quizzes",
+              "host": ["{{baseUrl}}"],
+              "path": ["shared", "quizzes"]
+            },
+            "description": "Get only quizzes shared with the current user (via shared folders)"
+          },
+          "response": [
+            {
+              "name": "Example Response",
+              "originalRequest": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/shared/quizzes",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["shared", "quizzes"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"_id\": \"64a69b8ea0b5c68f4bcd9876\",\n            \"title\": \"Algebra Basics\",\n            \"description\": \"Basic algebra questions\",\n            \"tags\": [\"math\", \"algebra\"],\n            \"questions\": [\n                {\n                    \"type\": \"mcq\",\n                    \"question\": \"What is x + 5 = 10?\",\n                    \"answer\": \"5\",\n                    \"options\": [\n                        {\n                            \"label\": \"3\",\n                            \"value\": \"3\"\n                        },\n                        {\n                            \"label\": \"5\",\n                            \"value\": \"5\"\n                        },\n                        {\n                            \"label\": \"7\",\n                            \"value\": \"7\"\n                        }\n                    ]\n                }\n            ],\n            \"isPublic\": true,\n            \"createdBy\": {\n                \"_id\": \"64a69b8ea0b5c68f4bcd5678\",\n                \"name\": \"John Doe\",\n                \"username\": \"johndoe\",\n                \"email\": \"john@example.com\"\n            },\n            \"isBookmarked\": false,\n            \"type\": \"quiz\",\n            \"sharedVia\": {\n                \"folderId\": \"64a69b8ea0b5c68f4bcd1234\",\n                \"folderName\": \"Math Study Materials\",\n                \"accessLevel\": \"collaborator\"\n            },\n            \"isInTrash\": false,\n            \"createdAt\": \"2024-01-01T00:00:00.000Z\",\n            \"updatedAt\": \"2024-01-01T00:00:00.000Z\"\n        }\n    ],\n    \"count\": 1,\n    \"message\": \"Found 1 shared quizzes\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Shared content endpoints"
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+/* ------------------------------------------------------------
+   ✅ Import base styles
+------------------------------------------------------------ */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* ------------------------------------------------------------
+   ✅ General scrollbar behavior
+------------------------------------------------------------ */
+
+/* Custom utility to hide scrollbar but keep scrollable content */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+/* globals.css or any imported CSS */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* ------------------------------------------------------------
+   ✅ Default styled scrollbar
+   (applies globally unless hidden)
+------------------------------------------------------------ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0890a8;
+  border-radius: 10px;
+  border: 2px solid transparent; /* Maintain round edges */
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(8, 144, 168, 0.8);
+  background-clip: padding-box;
+}
+
+/* Firefox equivalent */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0890a8 #f1f1f1;
+}
+
+/* ------------------------------------------------------------
+   ✅ Page structure fixes
+------------------------------------------------------------ */
+html,
+body,
+#__next {
+  overflow-x: hidden;
+}
+
+/* Prevent layout shift when scrollbar disappears */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* ------------------------------------------------------------
+   ✅ Modal handling
+   (Used when opening full-screen modals like your login panel)
+------------------------------------------------------------ */
+html.modal-open,
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Optional padding to prevent jump when scrollbar disappears */
+@supports not (scrollbar-gutter: stable) {
+  html.modal-open,
+  body.modal-open {
+    padding-right: 8px; /* matches scrollbar width */
+  }
+}
+
+/* ------------------------------------------------------------
+   ✅ Dropdown handling (optional, if you use dropdowns)
+------------------------------------------------------------ */
+html.dropdown-open,
+body.dropdown-open {
+  overflow: hidden;
+  padding-right: var(--scrollbar-width, 0px);
+}
+
+/* ------------------------------------------------------------
+   ✅ Dropdown + tooltip animations
+------------------------------------------------------------ */
+@keyframes slideUpAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideRightAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideDownAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeftAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ------------------------------------------------------------
+   ✅ Cursor behavior
+------------------------------------------------------------ */
+button:not([disabled]),
+[role='button']:not([disabled]),
+a:not([disabled]),
+.clickable {
+  cursor: pointer;
+}
+
+button[disabled],
+[role='button'][disabled],
+a[disabled],
+.disabled {
+  cursor: not-allowed;
+}

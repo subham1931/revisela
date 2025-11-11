@@ -1,0 +1,1 @@
+{"version":3,"file":"update-quiz.dto.js","sourceRoot":"","sources":["../../../../src/quizzes/dto/update-quiz.dto.ts"],"names":[],"mappings":";;;AAAA,6BAAwB;AACxB,uDAAqD;AAGxC,QAAA,gBAAgB,GAAG,kCAAgB;KAC7C,OAAO,EAAE;KACT,MAAM,CAAC;IACN,YAAY,EAAE,OAAC;SACZ,IAAI,CAAC,CAAC,YAAY,EAAE,QAAQ,CAAC,CAAC;SAC9B,QAAQ,EAAE;CACd,CAAC,CAAC"}
