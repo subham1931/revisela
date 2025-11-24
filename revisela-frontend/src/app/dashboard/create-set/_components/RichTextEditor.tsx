@@ -1,76 +1,52 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 
 interface RichTextEditorProps {
   value?: string;
   onChange: (html: string) => void;
+  placeholder?: string;
+  className?: string;
 }
 
-export default function RichTextEditor({ value = "", onChange }: RichTextEditorProps) {
+export default function RichTextEditor({ value = "", onChange, placeholder, className }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [activeStyles, setActiveStyles] = useState({
-    bold: false,
-    italic: false,
-    underline: false,
-  });
+  const [isEmpty, setIsEmpty] = useState(true);
 
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value;
+      checkIfEmpty();
     }
   }, [value]);
 
-  const toggleStyle = (style: "bold" | "italic" | "underline") => {
-    document.execCommand(
-      style === "bold"
-        ? "bold"
-        : style === "italic"
-        ? "italic"
-        : "underline",
-      false
-    );
-    setActiveStyles((prev) => ({ ...prev, [style]: !prev[style] }));
-    editorRef.current?.focus();
+  const checkIfEmpty = () => {
+    if (editorRef.current) {
+      const text = editorRef.current.innerText.trim();
+      setIsEmpty(text === '');
+    }
   };
 
   const handleInput = () => {
-    onChange(editorRef.current?.innerHTML || "");
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML);
+      checkIfEmpty();
+    }
   };
 
   return (
-    <div>
-      {/* Toolbar */}
-      <div className="flex gap-2 mb-1">
-        <button
-          type="button"
-          onClick={() => toggleStyle("bold")}
-          className={`p-1 rounded ${activeStyles.bold ? "bg-gray-300" : ""}`}
-        >
-          B
-        </button>
-        <button
-          type="button"
-          onClick={() => toggleStyle("italic")}
-          className={`p-1 rounded ${activeStyles.italic ? "bg-gray-300" : ""}`}
-        >
-          I
-        </button>
-        <button
-          type="button"
-          onClick={() => toggleStyle("underline")}
-          className={`p-1 rounded ${activeStyles.underline ? "bg-gray-300" : ""}`}
-        >
-          U
-        </button>
-      </div>
-
-      {/* Editor */}
+    <div className="relative w-full">
       <div
         ref={editorRef}
         contentEditable
-        className="border border-gray-300 rounded p-2 min-h-[80px] focus:outline-none"
+        className={`focus:outline-none border border-gray-300 focus:border-[#0890A8] break-words ${className}`}
         suppressContentEditableWarning={true}
         onInput={handleInput}
-      ></div>
+        style={{ minHeight: '1.5em', maxWidth: '100%', overflowWrap: 'break-word' }}
+      />
+      {isEmpty && placeholder && (
+        <div className="absolute top-0 left-0 pointer-events-none text-gray-400 p-2 ">
+          {placeholder}
+        </div>
+      )}
     </div>
   );
 }

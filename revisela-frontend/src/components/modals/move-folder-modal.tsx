@@ -3,24 +3,26 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Folder, FolderSymlink, Home, Loader2 } from 'lucide-react';
+import { ArrowRight, Folder, FolderClosed, FolderSymlink, Home, Loader2, Users } from 'lucide-react';
 
 import { useMoveFolder } from '@/services/features/folders';
 import { QUERY_KEYS } from '@/services/query-keys';
 
 import { Button, Modal } from '@/components/ui';
 import { FolderProvider, useFolderSystem } from '@/components/ui/folder';
-import { useToast } from '@/components/ui/toast';
+import { useToast } from '@/components/ui/toast/index';
 
 /* --------------------------------------------------------------------------
    FILTERED FOLDER EXPLORER
    -------------------------------------------------------------------------- */
 const FilteredFolderExplorer = ({
   folderId,
+  folderName,        // <-- added
   onFolderClick,
   className,
 }: {
   folderId: string;
+  folderName: string;  // <-- added
   onFolderClick: (id: string, name: string) => void;
   className?: string;
 }) => {
@@ -52,38 +54,52 @@ const FilteredFolderExplorer = ({
 
   return (
     <div className={className}>
-      <div className="flex items-center mb-3">
-        {currentFolderId && (
-          <Button
+
+      {/* ---------- Title + Breadcrumbs ---------- */}
+      <div className="flex flex-col mb-4">
+
+        {/* Title */}
+
+        {/* Back + Breadcrumbs */}
+        <div className="flex items-center mt-2">
+
+          {/* {currentFolderId && (
+            <Button
             variant="outline"
             onClick={navigateUp}
-            className="flex items-center gap-1 text-gray-600 hover:text-teal-600"
-          >
-            <span className="text-sm">Back</span>
-          </Button>
-        )}
+            className="mr-3 text-gray-600 hover:text-teal-600"
+            >
+            Back
+            </Button>
+            )} */}
 
-        <div className="flex items-center text-sm text-gray-600 ml-3">
-          {breadcrumbs.map((crumb, index) => (
-            <React.Fragment key={index}>
-              {index > 0 && <span className="mx-1 text-gray-400">{'>'}</span>}
-              <button
-                onClick={() =>
-                  navigateToFolder(crumb.id || undefined, crumb.name)
-                }
-                className={`hover:text-teal-600 ${
-                  index === breadcrumbs.length - 1
-                    ? 'font-medium text-teal-700'
-                    : ''
-                }`}
-              >
-                {crumb.name}
-              </button>
-            </React.Fragment>
-          ))}
+          <div className="flex items-center text-sm text-gray-600">
+            <p className="text-md font-bold text-black">
+              Move “{folderName}” to: 
+            </p>
+            {breadcrumbs.map((crumb, index) => (
+              <React.Fragment key={index}>
+                {index > 0 && <span className="mx-1 text-gray-400">{'>'}</span>}
+                <button
+                  onClick={() =>
+                    navigateToFolder(crumb.id || undefined, crumb.name)
+                  }
+                  className={`hover:text-teal-600 ${
+                    index === breadcrumbs.length - 1
+                      ? 'font-medium text-teal-700'
+                      : ''
+                  }`}
+                >
+                  {crumb.name}
+                </button>
+              </React.Fragment>
+            ))}
+          </div>
+
         </div>
       </div>
 
+      {/* ---------- Folder List ---------- */}
       <div className="overflow-hidden">
         {isLoadingFolders ? (
           <div className="p-6 text-center text-gray-500">
@@ -101,7 +117,7 @@ const FilteredFolderExplorer = ({
                 onClick={() => handleFolderClick(folder._id, folder.name)}
               >
                 <div className="flex items-center gap-2">
-                  <Folder size={20} className="text-teal-500 flex-shrink-0" />
+                  <Folder size={20} className="text-teal-500" />
                   <span className="font-medium truncate">{folder.name}</span>
                 </div>
               </div>
@@ -110,9 +126,7 @@ const FilteredFolderExplorer = ({
         ) : (
           <div className="p-6 text-center text-gray-500">
             <p className="text-sm">
-              {currentFolderId
-                ? 'This folder is empty'
-                : 'No folders available'}
+              {currentFolderId ? 'This folder is empty' : 'No folders available'}
             </p>
           </div>
         )}
@@ -120,6 +134,7 @@ const FilteredFolderExplorer = ({
     </div>
   );
 };
+
 
 /* --------------------------------------------------------------------------
    MOVE FOLDER CONTENT (WITH MOVE TO ROOT BUTTON)
@@ -141,64 +156,25 @@ const MoveFolderContent = ({
   const { currentFolderId: explorerCurrentFolderId, breadcrumbs } =
     useFolderSystem();
 
-  const [selectedFolderId, setSelectedFolderId] = useState<
-    string | undefined
-  >();
+  const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
   const [selectedFolderName, setSelectedFolderName] = useState<string>('');
-  const folderPathRef = useRef<string[]>([]);
-
-  useEffect(() => {
-    folderPathRef.current = breadcrumbs
-      .map((b) => b.id)
-      .filter(Boolean) as string[];
-  }, [breadcrumbs]);
 
   const handleFolderClick = useCallback(
     (id: string, name: string) => {
       if (id === folderId) return;
-      if (id === selectedFolderId) {
-        setSelectedFolderId(undefined);
-        setSelectedFolderName('');
-      } else {
-        setSelectedFolderId(id);
-        setSelectedFolderName(name);
-      }
+      setSelectedFolderId(id);
+      setSelectedFolderName(name);
     },
-    [selectedFolderId, folderId]
+    [folderId]
   );
 
-  const invalidateAllQueries = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FOLDERS.all });
-    if (explorerCurrentFolderId) {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.FOLDERS.byParent(explorerCurrentFolderId),
-      });
-    }
-    folderPathRef.current.forEach((id) => {
-      if (id) {
-        queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.FOLDERS.byParent(id),
-        });
-        queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.FOLDERS.details(id),
-        });
-      }
-    });
-    queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.FOLDERS.details(folderId),
-    });
-    queryClient.invalidateQueries({
-      queryKey: QUERY_KEYS.FOLDERS.byParent(undefined),
-    });
-  }, [queryClient, folderId, explorerCurrentFolderId]);
-
-  const handleMove = useCallback(() => {
+  const handleMove = () => {
     if (!selectedFolderId) return;
+
     moveFolder.mutate(
       { folderId, targetFolderId: selectedFolderId },
       {
         onSuccess: () => {
-          invalidateAllQueries();
           toast({
             title: 'Success',
             description: `Folder moved to "${selectedFolderName}"`,
@@ -207,70 +183,21 @@ const MoveFolderContent = ({
           onOpenChange(false);
           onSuccess?.();
         },
-        onError: (error) => {
-          toast({
-            title: 'Error',
-            description: (error as any).message || 'Failed to move folder',
-            type: 'error',
-          });
-        },
       }
     );
-  }, [
-    folderId,
-    moveFolder,
-    onOpenChange,
-    onSuccess,
-    selectedFolderId,
-    selectedFolderName,
-    toast,
-    invalidateAllQueries,
-  ]);
-
-  // 🆕 Move to My Library (root)
-  const handleMoveToRoot = useCallback(() => {
-    moveFolder.mutate(
-      { folderId, targetFolderId: 'root' },
-      {
-        onSuccess: () => {
-          invalidateAllQueries();
-          toast({
-            title: 'Success',
-            description: 'Folder moved to My Library',
-            type: 'success',
-          });
-          onOpenChange(false);
-          onSuccess?.();
-        },
-        onError: (error) => {
-          toast({
-            title: 'Error',
-            description:
-              (error as any).message || 'Failed to move folder to My Library',
-            type: 'error',
-          });
-        },
-      }
-    );
-  }, [
-    folderId,
-    moveFolder,
-    onOpenChange,
-    onSuccess,
-    toast,
-    invalidateAllQueries,
-  ]);
+  };
 
   return (
     <div className="py-3">
-      <div className="overflow-hidden mb-4 p-4">
+      <div className="mb-4 p-4">
         <FilteredFolderExplorer
           folderId={folderId}
+          folderName={folderName}   // <-- PASS NAME HERE
           onFolderClick={handleFolderClick}
           className="h-[350px] overflow-y-auto"
         />
 
-        {selectedFolderId && (
+        {/* {selectedFolderId && (
           <div className="mt-3 p-3 bg-teal-50 border border-teal-200 rounded-md flex items-center gap-2">
             <Folder size={16} className="text-teal-600" />
             <p className="text-sm font-medium text-teal-700">
@@ -278,50 +205,22 @@ const MoveFolderContent = ({
               <span className="font-bold">{selectedFolderName}</span>
             </p>
           </div>
-        )}
+        )} */}
       </div>
 
-      {/* --- Buttons --- */}
-      <div className="flex justify-between w-full mt-4">
+      <div className="flex justify-end w-full mt-4">
         <Button
-          variant="outline"
-          onClick={handleMoveToRoot}
-          disabled={moveFolder.isPending}
-          className="flex items-center gap-1 border-gray-300"
-        >
-          {moveFolder.isPending &&
-          moveFolder.variables?.targetFolderId === 'root' ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <Home size={16} className="text-gray-600" />
-          )}
-          <span>Move to My Library</span>
-        </Button>
-
-        <Button
-          disabled={!selectedFolderId || moveFolder.isPending}
+          disabled={!selectedFolderId}
           onClick={handleMove}
-          className={`flex items-center gap-1 ${
-            selectedFolderId && !moveFolder.isPending
-              ? 'bg-teal-600 hover:bg-teal-700 text-white'
-              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-          }`}
+          className="bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1"
         >
-          {moveFolder.isPending &&
-            moveFolder.variables?.targetFolderId === selectedFolderId && (
-              <Loader2 size={16} className="animate-spin" />
-            )}
-          <span>
-            {moveFolder.isPending &&
-            moveFolder.variables?.targetFolderId === selectedFolderId
-              ? 'Moving...'
-              : 'Move Here'}
-          </span>
+          Move Here
         </Button>
       </div>
     </div>
   );
 };
+
 
 /* --------------------------------------------------------------------------
    OUTER TWO‑STEP MODAL
@@ -361,14 +260,14 @@ export const MoveFolderModal: React.FC<{
             Move “{folderName}” to:
           </p>
 
-          <div className="flex flex-col divide-y divide-gray-100">
+          <div className="flex flex-col ">
             {/* My Library */}
             <button
               onClick={() => setMode('library')}
-              className="group flex items-center justify-between px-3 py-3 hover:bg-gray-50 rounded transition-colors"
+              className="group flex items-center justify-between px-3 py-3 hover:bg-[#ACACAC33]/20 rounded transition-colors"
             >
               <div className="flex items-center gap-2">
-                <Folder
+                <FolderClosed
                   size={18}
                   className="text-black group-hover:text-[#0890A8] transition-colors"
                 />
@@ -388,7 +287,7 @@ export const MoveFolderModal: React.FC<{
               className="group flex items-center justify-between px-3 py-3 text-black rounded hover:bg-gray-50 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <div className="flex items-center gap-2">
-                <FolderSymlink
+                <Users
                   size={18}
                   className="text-black group-hover:text-[#0890A8] transition-colors"
                 />

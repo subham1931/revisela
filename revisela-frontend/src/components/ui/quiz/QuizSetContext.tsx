@@ -14,7 +14,7 @@ interface QuizSet {
   title: string;
   description?: string;
   tags?: string[];
-  folderId?: string;
+  folderId?: string | null;
   isBookmarked?: boolean;
   [key: string]: any;
 }
@@ -32,7 +32,7 @@ const QuizSetContext = createContext<QuizSetContextProps | undefined>(undefined)
 
 interface QuizSetProviderProps {
   children: React.ReactNode;
-  folderId?: string;
+  folderId?: string | null;   // ✅ UPDATED TYPE
 }
 
 export const QuizSetProvider: React.FC<QuizSetProviderProps> = ({
@@ -42,13 +42,11 @@ export const QuizSetProvider: React.FC<QuizSetProviderProps> = ({
   const { data: quizzes = [], isLoading, refetch } = useQuizzes(folderId);
   const { data: bookmarkedData } = useBookmarkedQuizzes();
 
-  // Collect IDs of bookmarked quizzes
   const bookmarkedIds = useMemo(() => {
     const list = bookmarkedData?.data?.data || bookmarkedData?.data || [];
     return new Set(list.map((q: any) => q._id));
   }, [bookmarkedData]);
 
-  // Merge bookmark info into quizzes
   const enrichedQuizzes = useMemo(
     () =>
       quizzes.map((quiz: any) => ({
@@ -58,7 +56,6 @@ export const QuizSetProvider: React.FC<QuizSetProviderProps> = ({
     [quizzes, bookmarkedIds]
   );
 
-  // Mutations
   const createQuizMutation = useCreateQuiz();
   const updateQuizMutation = useUpdateQuiz();
   const deleteQuizMutation = useDeleteQuiz();

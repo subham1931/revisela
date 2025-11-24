@@ -25,6 +25,8 @@ interface CreateQuestionCardProps {
   onAddNewQuestion: (index: number) => void;
   onMoveQuestion: (oldIndex: number, newIndex: number) => void;
   removeQuestion: (index: number) => void;
+  selectorCount: number;
+  onTypeSelected: () => void;
 }
 
 export default function CreateQuestionCard({
@@ -34,6 +36,8 @@ export default function CreateQuestionCard({
   onAddNewQuestion,
   onMoveQuestion,
   removeQuestion,
+  selectorCount,
+  onTypeSelected,
 }: CreateQuestionCardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -70,6 +74,9 @@ export default function CreateQuestionCard({
                 control={control}
                 onAddQuestion={() => onAddNewQuestion(index + 1)}
                 onDeleteQuestion={() => removeQuestion(index)}
+                totalQuestions={questionFields.length}
+                selectorCount={selectorCount}
+                onTypeSelected={onTypeSelected}
               />
             ))}
           </SortableContext>

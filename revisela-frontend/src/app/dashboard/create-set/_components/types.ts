@@ -1,5 +1,5 @@
 // _components/types.ts
-export type QuestionType = 'Flashcard' | 'Multiple Choice Question (MCQ)' | 'Fill-In';
+export type QuestionType = 'Flashcard' | 'Multiple Choice Question (MCQ)' | 'Fill-In' | 'Selector';
 
 export interface Question {
   id: string;
@@ -10,6 +10,6 @@ export interface Question {
 export interface QuizSetData {
   title: string;
   description: string; // not optional!
-  tags: string[];
+  tags: string[] | any;
   questions: Question[];
 }

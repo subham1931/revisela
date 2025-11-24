@@ -30,9 +30,9 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
 
   return (
     <nav className={cn('flex items-center', className)} aria-label="Breadcrumb">
-      <ol className="flex items-center">
+      <ol className="flex items-center ">
         {items.map((item, index) => {
-          const isLast = index === items.length - 1;
+          const isLast = items.length > 1 && index === items.length - 1;
 
           // Create the breadcrumb item content
           const itemContent = (
@@ -40,10 +40,8 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
               {item.icon}
               <span
                 className={cn(
-                  'text-3xl text-[#0890A8]',
-                  isLast
-                    ? 'font-medium '
-                    : 'font-bold'
+                  'text-2xl text-[#0890A8] font-bold',
+                  isLast && 'hover:opacity-75 font-medium'
                 )}
               >
                 {item.label}
@@ -52,7 +50,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
           );
 
           return (
-            <li key={index} className="flex items-center">
+            <li key={index} className="flex items-center ">
               {index > 0 && separator}
 
               {item.href && !isLast ? (

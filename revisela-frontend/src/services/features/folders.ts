@@ -141,9 +141,13 @@ export const useUpdateFolder = () => {
 
       // Invalidate all major folder queries so UI refreshes
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FOLDERS.all });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FOLDERS.bookmarked });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.FOLDERS.bookmarked,
+      });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FOLDERS.trash });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FOLDERS.byParent() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.FOLDERS.byParent(),
+      });
     },
     onError: (error) => {
       console.error('❌ Folder update failed:', error);
@@ -308,6 +312,52 @@ export const useMoveFolder = () => {
   });
 };
 
+// export const useMoveFolder = () => {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: async ({
+//       folderId,
+//       targetFolderId,
+//     }: {
+//       folderId: string;
+//       targetFolderId: string | null; // <-- FIX
+//     }) => {
+//       const response = await apiRequest(
+//         FOLDER_ENDPOINTS.MOVE_FOLDER(folderId),
+//         {
+//           body: { targetFolderId },
+//         }
+//       );
+
+//       if (response.error) {
+//         throw response.error;
+//       }
+
+//       return { folderId, targetFolderId };
+//     },
+
+//     onSuccess: ({ folderId, targetFolderId }) => {
+//       // Current folder details
+//       queryClient.invalidateQueries({
+//         queryKey: QUERY_KEYS.FOLDERS.details(folderId),
+//       });
+
+//       // Only invalidate destination folder if not root
+//       if (targetFolderId) {
+//         queryClient.invalidateQueries({
+//           queryKey: QUERY_KEYS.FOLDERS.details(targetFolderId),
+//         });
+//       }
+
+//       // Always refresh root list
+//       queryClient.invalidateQueries({
+//         queryKey: QUERY_KEYS.FOLDERS.all,
+//       });
+//     },
+//   });
+// };
+
 // Duplicate a folder
 export const useDuplicateFolder = () => {
   const queryClient = useQueryClient();
@@ -423,9 +473,12 @@ export const useShareFolder = () => {
       emails: string[];
       accessLevel: 'admin' | 'collaborator' | 'member';
     }) => {
-      const response = await apiRequest(FOLDER_ENDPOINTS.SHARE_FOLDER(folderId), {
-        body: { emails, accessLevel },
-      });
+      const response = await apiRequest(
+        FOLDER_ENDPOINTS.SHARE_FOLDER(folderId),
+        {
+          body: { emails, accessLevel },
+        }
+      );
 
       if (response.error) {
         throw response.error;
@@ -512,9 +565,12 @@ export const useUpdateFolderPublicAccess = () => {
       folderId: string;
       publicAccess: 'restricted' | 'public';
     }) => {
-      const response = await apiRequest(FOLDER_ENDPOINTS.UPDATE_FOLDER(folderId), {
-        body: { publicAccess },
-      });
+      const response = await apiRequest(
+        FOLDER_ENDPOINTS.UPDATE_FOLDER(folderId),
+        {
+          body: { publicAccess },
+        }
+      );
 
       if (response.error) {
         throw response.error;
@@ -532,7 +588,9 @@ export const useUpdateFolderPublicAccess = () => {
 export const useGetFolderShareLink = () => {
   return useMutation({
     mutationFn: async (folderId: string) => {
-      const response = await apiRequest(FOLDER_ENDPOINTS.GET_FOLDER_SHARE_LINK(folderId));
+      const response = await apiRequest(
+        FOLDER_ENDPOINTS.GET_FOLDER_SHARE_LINK(folderId)
+      );
 
       if (response.error) {
         throw response.error;

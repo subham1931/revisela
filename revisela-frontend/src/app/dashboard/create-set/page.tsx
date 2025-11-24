@@ -6,46 +6,33 @@ import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
 
 import { Plus } from 'lucide-react';
 
-import CreateQuestionCard from './_components/CreateQuestionCard';
-import CreateSetForm from './_components/create-quizset-form';
-import QuestionTypeSelector from './_components/question-type-selector';
-
 // Adjust this path if needed
 import { useCreateQuiz } from '@/services/features/quizzes';
 
-export type QuestionType = 'Flashcard' | 'Multiple Choice Question (MCQ)' | 'Fill-In';
-
-export interface Question {
-  id: string;
-  type: QuestionType;
-  content: any;
-}
-
-export interface QuizSetData {
-  title: string;
-  description: string;
-  tags: string[] | any;
-  questions: Question[];
-}
+import CreateQuestionCard from './_components/CreateQuestionCard';
+import CreateSetForm from './_components/create-quizset-form';
+import { Question, QuestionType, QuizSetData } from './_components/types';
+import { getDefaultContentForType } from './_components/utils';
+import { PlusIcon } from '@/components/icons';
 
 type ApiQuestion =
   | {
-      type: 'flashCard';
-      question: string;
-      answer: string;
-      image?: string;
-    }
+    type: 'flashCard';
+    question: string;
+    answer: string;
+    image?: string;
+  }
   | {
-      type: 'mcq';
-      question: string;
-      answer: string; // must equal one of options[].value
-      options: { label: string; value: string }[];
-    }
+    type: 'mcq';
+    question: string;
+    answer: string; // must equal one of options[].value
+    options: { label: string; value: string }[];
+  }
   | {
-      type: 'fillIn';
-      question: string; // contains ___
-      answer: string;
-    };
+    type: 'fillIn';
+    question: string; // contains ___
+    answer: string;
+  };
 
 interface CreateQuizPayload {
   title: string;
@@ -60,8 +47,8 @@ const REQUIRED_MCQ_OPTIONS = 4; // set to 4 if your backend allows 4
 
 // For console table
 type ValidationError = {
-  path: string;   // e.g., "title", "questions[0].options"
-  code: string;   // e.g., "mcq.options.count"
+  path: string; // e.g., "title", "questions[0].options"
+  code: string; // e.g., "mcq.options.count"
   message: string;
 };
 
@@ -71,7 +58,13 @@ export default function CreateSetPage() {
       title: '',
       description: '',
       tags: [],
-      questions: [],
+      questions: [
+        {
+          id: `${Date.now()}`,
+          type: 'Selector',
+          content: {},
+        },
+      ],
     },
   });
 
@@ -81,9 +74,7 @@ export default function CreateSetPage() {
     name: 'questions',
   });
 
-  const [showTypeSelector, setShowTypeSelector] = useState(false);
-  const [insertAtIndex, setInsertAtIndex] = useState<number | null>(null);
-  const [activeQuestionIndex, setActiveQuestionIndex] = useState<number | null>(null);
+  const [selectorCount, setSelectorCount] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const router = useRouter();
 
@@ -110,71 +101,78 @@ export default function CreateSetPage() {
       onSuccess: () => setShowSuccessModal(true),
       onError: (err: unknown) => {
         logServerValidationError(err); // detailed console output
-        alert('Validation failed. See console (Network + Console tabs) for details.');
+        alert(
+          'Validation failed. See console (Network + Console tabs) for details.'
+        );
       },
     });
   };
 
   const handleAddNewQuestion = (index: number) => {
-    setInsertAtIndex(index);
-    setShowTypeSelector(true);
-  };
-
-  const handleSelectQuestionType = (type: QuestionType) => {
     const newQuestion: Question = {
       id: `${Date.now()}`,
-      type,
-      content: getDefaultContentForType(type),
+      type: 'Selector',
+      content: {},
     };
 
-    const destIndex = insertAtIndex !== null ? insertAtIndex : fields.length;
+    if (index < fields.length) {
+      insert(index, newQuestion);
+    } else {
+      append(newQuestion);
+    }
+    setSelectorCount((prev) => prev + 1);
+  };
 
-    if (insertAtIndex !== null) insert(insertAtIndex, newQuestion);
-    else append(newQuestion);
+  const handleRemoveQuestion = (index: number) => {
+    if (fields.length === 1) {
+      // If removing the last question, replace it with a new Selector
+      remove(index);
+      append({
+        id: `${Date.now()}`,
+        type: 'Selector',
+        content: {},
+      });
+      setSelectorCount(1);
+      return;
+    }
 
-    setActiveQuestionIndex(destIndex);
-    setInsertAtIndex(null);
-    setShowTypeSelector(false);
+    const question = methods.getValues(`questions.${index}`);
+    if (question.type === 'Selector') {
+      setSelectorCount((prev) => prev - 1);
+    }
+    remove(index);
+  };
+
+  const handleTypeSelected = () => {
+    setSelectorCount((prev) => prev - 1);
   };
 
   const handleMoveQuestion = (oldIndex: number, newIndex: number) => {
     move(oldIndex, newIndex);
-    setActiveQuestionIndex((prev) => {
-      if (prev === null) return null;
-      if (prev === oldIndex) return newIndex;
-      if (oldIndex < prev && newIndex >= prev) return prev - 1;
-      if (oldIndex > prev && newIndex <= prev) return prev + 1;
-      return prev;
-    });
+  };
+
+  const handleImport = (newQuestions: Question[]) => {
+    append(newQuestions);
   };
 
   return (
     <FormProvider {...methods}>
-      <main className="container px-4 py-6 max-w-full  ">
+      <main className="container px-4  max-w-full">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mr-10">
-          <CreateSetForm />
+          <CreateSetForm onImport={handleImport} />
 
           <CreateQuestionCard
             control={control}
             questionFields={fields}
-            activeQuestionIndex={activeQuestionIndex}
+            activeQuestionIndex={null}
             onAddNewQuestion={handleAddNewQuestion}
             onMoveQuestion={handleMoveQuestion}
-            removeQuestion={(index: number) => remove(index)}
+            removeQuestion={handleRemoveQuestion}
+            selectorCount={selectorCount}
+            onTypeSelected={handleTypeSelected}
           />
 
-          {showTypeSelector && (
-            <QuestionTypeSelector
-              onSelect={handleSelectQuestionType}
-              title={
-                insertAtIndex !== null
-                  ? `Add question at position ${insertAtIndex + 1}`
-                  : 'Add question'
-              }
-            />
-          )}
-
-          <div className="flex justify-center">
+          {/* <div className="flex justify-center">
             <button
               type="button"
               onClick={() => handleAddNewQuestion(fields.length)}
@@ -183,16 +181,20 @@ export default function CreateSetPage() {
               <Plus className="w-4 h-4" />
               Add Question
             </button>
-          </div>
+          </div> */}
 
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={isPending}
-              className={`px-5 py-2 rounded bg-teal-600 text-white hover:bg-teal-700 ${
-                isPending ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+              // className={`px-5 py-2 rounded bg-teal-600 text-white hover:bg-teal-700 ${
+              //   isPending ? 'opacity-70 cursor-not-allowed' : ''
+              // }`}
+              className={`bg-[#0890A8] hover:bg-[#0890A8]/75 text-white rounded-md h-10 px-4 text-sm font-medium flex items-center gap-1 ${isPending ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
             >
+
+              <PlusIcon size={20} />
               {isPending ? 'Creating...' : 'Create Set'}
             </button>
           </div>
@@ -202,7 +204,9 @@ export default function CreateSetPage() {
           <div className="fixed inset-0 flex items-center justify-center bg-black/50 bg-opacity-40 z-50">
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md text-center">
               <h2 className="text-xl font-bold mb-5">🎉 Congratulations!</h2>
-              <p className="mb-6">Your quiz set has been created successfully.</p>
+              <p className="mb-6">
+                Your quiz set has been created successfully.
+              </p>
               <div className="flex justify-between gap-4">
                 <button
                   className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
@@ -225,18 +229,7 @@ export default function CreateSetPage() {
   );
 }
 
-function getDefaultContentForType(type: QuestionType) {
-  switch (type) {
-    case 'Flashcard':
-      return { front: '', back: '', image: '' };
-    case 'Multiple Choice Question (MCQ)':
-      return { question: '', options: ['', '', '', '', ''], correct: null }; // 5 options
-    case 'Fill-In':
-      return { question: '', answer: '' };
-    default:
-      return {};
-  }
-}
+
 
 // ---------- Client-side validation + console helpers ----------
 function validateQuizForClient(form: QuizSetData): ValidationError[] {
@@ -246,33 +239,76 @@ function validateQuizForClient(form: QuizSetData): ValidationError[] {
   const description = (form.description || '').trim();
 
   // Adjust min lengths to match your backend if needed
-  if (!title) errors.push({ path: 'title', code: 'title.required', message: 'Title is required' });
-  if (title.length < 3) errors.push({ path: 'title', code: 'title.minLength', message: 'Title must be at least 3 characters' });
+  if (!title)
+    errors.push({
+      path: 'title',
+      code: 'title.required',
+      message: 'Title is required',
+    });
+  if (title.length < 3)
+    errors.push({
+      path: 'title',
+      code: 'title.minLength',
+      message: 'Title must be at least 3 characters',
+    });
 
-  if (!description) errors.push({ path: 'description', code: 'description.required', message: 'Description is required' });
-  if (description.length < 10) errors.push({ path: 'description', code: 'description.minLength', message: 'Description must be at least 10 characters' });
+  if (!description)
+    errors.push({
+      path: 'description',
+      code: 'description.required',
+      message: 'Description is required',
+    });
+  if (description.length < 10)
+    errors.push({
+      path: 'description',
+      code: 'description.minLength',
+      message: 'Description must be at least 10 characters',
+    });
 
   const tags = normalizeTags((form as any).tags);
-  if (tags.length < 1) errors.push({ path: 'tags', code: 'tags.minItems', message: 'At least 1 tag is required' });
+  if (tags.length < 1)
+    errors.push({
+      path: 'tags',
+      code: 'tags.minItems',
+      message: 'At least 1 tag is required',
+    });
 
   const questions = Array.isArray(form.questions) ? form.questions : [];
   if (questions.length < 1) {
-    errors.push({ path: 'questions', code: 'questions.minItems', message: 'Add at least 1 question' });
+    errors.push({
+      path: 'questions',
+      code: 'questions.minItems',
+      message: 'Add at least 1 question',
+    });
     return errors;
   }
 
   questions.forEach((q, i) => {
     const qPath = `questions[${i}]`;
-    if (!q?.type) {
-      errors.push({ path: `${qPath}.type`, code: 'question.type.required', message: `Question ${i + 1}: type is required` });
+    if (!q?.type || q.type === 'Selector') {
+      errors.push({
+        path: `${qPath}.type`,
+        code: 'question.type.required',
+        message: `Question ${i + 1}: Please select a question type`,
+      });
       return;
     }
 
     if (q.type === 'Flashcard') {
       const front = (q.content?.front || '').trim();
       const back = (q.content?.back || '').trim();
-      if (!front) errors.push({ path: `${qPath}.front`, code: 'flashCard.front.required', message: `Flashcard ${i + 1}: Front is required` });
-      if (!back) errors.push({ path: `${qPath}.back`, code: 'flashCard.back.required', message: `Flashcard ${i + 1}: Back is required` });
+      if (!front)
+        errors.push({
+          path: `${qPath}.front`,
+          code: 'flashCard.front.required',
+          message: `Flashcard ${i + 1}: Front is required`,
+        });
+      if (!back)
+        errors.push({
+          path: `${qPath}.back`,
+          code: 'flashCard.back.required',
+          message: `Flashcard ${i + 1}: Back is required`,
+        });
       // If your backend requires image, uncomment:
       // const image = (q.content?.image || '').trim();
       // if (!image) errors.push({ path: `${qPath}.image`, code: 'flashCard.image.required', message: `Flashcard ${i + 1}: Image URL is required` });
@@ -285,7 +321,12 @@ function validateQuizForClient(form: QuizSetData): ValidationError[] {
       const nonEmpty = trimmed.filter(Boolean);
       const correctIndex = q.content?.correct;
 
-      if (!question) errors.push({ path: `${qPath}.question`, code: 'mcq.question.required', message: `MCQ ${i + 1}: Question is required` });
+      if (!question)
+        errors.push({
+          path: `${qPath}.question`,
+          code: 'mcq.question.required',
+          message: `MCQ ${i + 1}: Question is required`,
+        });
       if (nonEmpty.length < REQUIRED_MCQ_OPTIONS) {
         errors.push({
           path: `${qPath}.options`,
@@ -303,15 +344,27 @@ function validateQuizForClient(form: QuizSetData): ValidationError[] {
         });
       }
       if (correctIndex === null || correctIndex === undefined) {
-        errors.push({ path: `${qPath}.answer`, code: 'mcq.answer.required', message: `MCQ ${i + 1}: Correct option is required` });
+        errors.push({
+          path: `${qPath}.answer`,
+          code: 'mcq.answer.required',
+          message: `MCQ ${i + 1}: Correct option is required`,
+        });
       } else {
         const correctLabelOriginal = (trimmed[correctIndex] || '').trim();
         if (!correctLabelOriginal) {
-          errors.push({ path: `${qPath}.answer`, code: 'mcq.answer.blank', message: `MCQ ${i + 1}: Correct option cannot be blank` });
+          errors.push({
+            path: `${qPath}.answer`,
+            code: 'mcq.answer.blank',
+            message: `MCQ ${i + 1}: Correct option cannot be blank`,
+          });
         } else {
           const answerValue = slugifyOptionValue(correctLabelOriginal);
           if (!normalizedValues.includes(answerValue)) {
-            errors.push({ path: `${qPath}.answer`, code: 'mcq.answer.mismatch', message: `MCQ ${i + 1}: Answer must match one of the option values` });
+            errors.push({
+              path: `${qPath}.answer`,
+              code: 'mcq.answer.mismatch',
+              message: `MCQ ${i + 1}: Answer must match one of the option values`,
+            });
           }
         }
       }
@@ -320,19 +373,30 @@ function validateQuizForClient(form: QuizSetData): ValidationError[] {
     if (q.type === 'Fill-In') {
       const question = (q.content?.question || '').trim();
       if (!question) {
-        errors.push({ path: `${qPath}.question`, code: 'fillIn.question.required', message: `Fill-In ${i + 1}: Question is required` });
+        errors.push({
+          path: `${qPath}.question`,
+          code: 'fillIn.question.required',
+          message: `Fill-In ${i + 1}: Question is required`,
+        });
       } else {
         const matches = question.match(/\?\?(.+?)\?\?/g) || [];
         if (matches.length !== 1) {
           errors.push({
             path: `${qPath}.question`,
-            code: matches.length === 0 ? 'fillIn.placeholder.missing' : 'fillIn.placeholder.multiple',
+            code:
+              matches.length === 0
+                ? 'fillIn.placeholder.missing'
+                : 'fillIn.placeholder.multiple',
             message: `Fill-In ${i + 1}: Must contain exactly one blank using ??WORD??`,
           });
         } else {
           const ans = extractFillInAnswer(question);
           if (!ans) {
-            errors.push({ path: `${qPath}.answer`, code: 'fillIn.answer.empty', message: `Fill-In ${i + 1}: The blank (between ??  ??) cannot be empty` });
+            errors.push({
+              path: `${qPath}.answer`,
+              code: 'fillIn.answer.empty',
+              message: `Fill-In ${i + 1}: The blank (between ??  ??) cannot be empty`,
+            });
           }
         }
       }
@@ -344,7 +408,10 @@ function validateQuizForClient(form: QuizSetData): ValidationError[] {
 
 function logClientValidationErrors(errors: ValidationError[]) {
   if (!errors.length) return;
-  console.group('%cClient-side validation errors', 'color:#d97706;font-weight:bold;');
+  console.group(
+    '%cClient-side validation errors',
+    'color:#d97706;font-weight:bold;'
+  );
   console.table(errors);
   console.groupEnd();
 }
@@ -371,7 +438,9 @@ function logServerValidationError(err: unknown) {
   }
   // class-validator (NestJS): { message: string[] } or string
   else if (Array.isArray(data?.message)) {
-    console.table(data.message.map((m: string, idx: number) => ({ index: idx, message: m })));
+    console.table(
+      data.message.map((m: string, idx: number) => ({ index: idx, message: m }))
+    );
   } else if (typeof data?.message === 'string') {
     console.warn('message:', data.message);
   }
@@ -426,7 +495,11 @@ function mapQuestionToApi(q: Question): ApiQuestion {
   // Fill-In: convert ??WORD?? -> ___ and send extracted WORD as answer
   const rawQuestion = (q.content.question || '').trim();
   const derivedAnswer = extractFillInAnswer(rawQuestion);
-  const answer = (derivedAnswer || (q.content.answer || '').trim() || '').trim();
+  const answer = (
+    derivedAnswer ||
+    (q.content.answer || '').trim() ||
+    ''
+  ).trim();
   const normalizedQuestion = rawQuestion.replace(/\?\?(.+?)\?\?/, '___');
 
   return {

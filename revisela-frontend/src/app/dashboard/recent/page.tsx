@@ -3,6 +3,8 @@
 import React from 'react';
 
 import { QuizSetItem } from '../library/components';
+import QuizCard from '@/components/ui/quiz/QuizCard';
+import { usePublicQuizzes } from '@/services/features/quizzes';
 
 export default function RecentPage() {
   // Mock quiz sets data - use the same data as in RecentSection or fetch from API
@@ -40,23 +42,44 @@ export default function RecentPage() {
     // Add more items to match your image
   ];
 
+  const { data: publicQuizzesData, isLoading } = usePublicQuizzes(3, 0);
+  const recentQuizzes = publicQuizzesData?.results || [];
+  if (!isLoading && recentQuizzes.length === 0) {
+    return null;
+  }
+
   return (
     <div className="">
-      <h1 className="text-3xl font-bold mb-1 text-[#0890A8]">Recent</h1>
+      <h1 className="text-3xl font-bold mb-6 text-[#0890A8]">Recent</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {recentQuizSets.map((quizSet) => (
-          <QuizSetItem
-            key={quizSet.id}
-            title={quizSet.title}
-            description={quizSet.description}
-            tags={quizSet.tags}
-            creator={quizSet.creator}
-            rating={quizSet.rating}
-            isBookmarked={quizSet.isBookmarked}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <p className="text-gray-500">Loading recent quizzes...</p>
+      ) : recentQuizzes.length === 0 ? (
+        <p className="text-gray-500">No recent quizzes found.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {recentQuizzes.map((quiz) => (
+            <QuizCard
+              key={quiz._id}
+              id={quiz._id}
+              title={quiz.title}
+              description={quiz.description || ''}
+              tags={quiz.tags || []}
+              rating={0}
+              user={{
+                name: typeof quiz.createdBy === 'object'
+                  ? quiz.createdBy?.name || 'Unknown'
+                  : 'Unknown',
+                profileImage: typeof quiz.createdBy === 'object'
+                  ? quiz.createdBy?.profileImage
+                  : undefined,
+              }}
+              parentRoute="dashboard"
+              isBookmarked={!!quiz.isBookmarked}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

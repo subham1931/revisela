@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bookmark,
   Clock,
+  FolderClosed,
   FolderOpen,
   GraduationCap,
   Home,
@@ -56,7 +57,7 @@ const Sidebar = () => {
   // Main navigation menu items
   const mainMenuItems: MenuItem[] = [
     { path: ROUTES.DASHBOARD.HOME, label: 'Home', icon: <Home size={20} /> },
-    { path: ROUTES.DASHBOARD.LIBRARY, label: 'My Library', icon: <Library size={20} /> },
+    { path: ROUTES.DASHBOARD.LIBRARY, label: 'My Library', icon: <FolderClosed size={20} /> },
     { path: ROUTES.DASHBOARD.SHARED, label: 'Shared With Me', icon: <Users size={20} /> },
     { path: ROUTES.DASHBOARD.BOOKMARKS, label: 'Bookmarked', icon: <Bookmark size={20} /> },
     { path: ROUTES.DASHBOARD.RECENT, label: 'Recent', icon: <Clock size={20} /> },
@@ -89,9 +90,9 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="flex flex-col p-4">
+      <div className="flex flex-col p-4 ">
         {/* Main Navigation */}
-        <nav className="space-y-2">
+        <nav className="space-y-1">
           {mainMenuItems.map((item) => (
             <Link
               key={item.path}
@@ -106,10 +107,10 @@ const Sidebar = () => {
           ))}
         </nav>
 
-        <div className="my-4 border-t border-gray-200"></div>
+        <div className="my-1 border-t border-gray-200"></div>
 
         {/* My Classes Section */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           {/* <div className="flex items-center justify-between">
             <button
               onClick={() => setShowClasses(!showClasses)}

@@ -1,200 +1,290 @@
-'use client';
+// 'use client';
 
-import React, { useMemo, useState } from 'react';
+// import React, { useMemo, useState } from 'react';
+// import { Folder } from 'lucide-react';
 
-import { Folder } from 'lucide-react';
+// import { useSharedContent } from '@/services/features/shared';
+// import { useAppSelector } from '@/store';
+// import { selectUser } from '@/store/slices/authSlice';
 
-import { useFolderDetails } from '@/services/features/folders';
-import { useSharedContent } from '@/services/features/shared';
-import { useAppSelector } from '@/store';
-import { selectUser } from '@/store/slices/authSlice';
+// import { Breadcrumb, BreadcrumbItem } from '@/components/ui/Breadcrumb';
+// import { FolderItem } from '@/components/ui/folder';
+// import { LoadingSpinner } from '@/components/ui/loaders';
+// import { QuizSetItem } from '../library/components';
 
-import { Breadcrumb, BreadcrumbItem } from '@/components/ui/Breadcrumb';
-import { FolderItem } from '@/components/ui/folder';
-import { LoadingSpinner } from '@/components/ui/loaders';
+// export default function SharedPage() {
+//   const [folderTrail, setFolderTrail] = useState<
+//     { id: string; name: string }[]
+//   >([]);
 
-import { QuizSetItem } from '../library/components';
+//   // Logged-in user
+//   const currentUser = useAppSelector(selectUser);
+//   const currentUserId =
+//     currentUser?._id || (currentUser as any)?.id || '';
 
-interface TrailItem {
-  id: string;
-  name: string;
-}
+//   // Selected folder (from breadcrumb trail)
+//   const selectedFolderId =
+//     folderTrail.length > 0
+//       ? folderTrail[folderTrail.length - 1].id
+//       : null;
 
-const getIdString = (value: any): string | undefined => {
-  if (!value) return undefined;
-  if (typeof value === 'string') return value;
-  if (typeof value === 'object' && value._id) {
-    return value._id.toString();
-  }
-  if (typeof value === 'object' && typeof value.toString === 'function') {
-    return value.toString();
-  }
-  return undefined;
-};
+//   // Fetch ALL shared data once
+//   const {
+//     data: sharedContent,
+//     isLoading,
+//     error,
+//   } = useSharedContent();
+
+//   // =============================
+//   // GET SELECTED FOLDER FROM SHARED CONTENT
+//   // =============================
+//   const selectedFolder = useMemo(() => {
+//     if (!selectedFolderId) return null;
+
+//     return sharedContent?.folders.find(
+//       (f) => f._id === selectedFolderId
+//     );
+//   }, [selectedFolderId, sharedContent]);
+
+//   // =============================
+//   // FOLDERS TO DISPLAY
+//   // =============================
+//   const displayedFolders = selectedFolder
+//     ? selectedFolder.subFolders || []
+//     : sharedContent?.folders || [];
+//     console.log("displayedFolders", displayedFolders);
+
+//   // =============================
+//   // QUIZZES TO DISPLAY
+//   // =============================
+//   const displayedQuizzes = selectedFolder
+//     ? selectedFolder.quizzes || []
+//     : sharedContent?.quizzes || [];
+
+//   // =============================
+//   // NAVIGATION: CLICK FOLDER
+//   // =============================
+//   const handleFolderClick = (id: string, name: string) => {
+//     if (!id) return;
+
+//     setFolderTrail((prev) => {
+//       const exists = prev.find((item) => item.id === id);
+//       if (exists) {
+//         const idx = prev.findIndex((i) => i.id === id);
+//         return prev.slice(0, idx + 1);
+//       }
+//       return [...prev, { id, name }];
+//     });
+//   };
+
+//   // =============================
+//   // NAVIGATION: CLICK BREADCRUMB
+//   // =============================
+//   const handleBreadcrumbClick = (idx: number) => {
+//     if (idx < 0) {
+//       setFolderTrail([]);
+//       return;
+//     }
+//     setFolderTrail((prev) => prev.slice(0, idx + 1));
+//   };
+
+//   // =============================
+//   // BUILD BREADCRUMB
+//   // =============================
+//   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+//     const root: BreadcrumbItem = {
+//       label: 'Shared With Me',
+//       isCurrent: folderTrail.length === 0,
+//       onClick:
+//         folderTrail.length > 0
+//           ? () => handleBreadcrumbClick(-1)
+//           : undefined,
+//     };
+
+//     const trailItems = folderTrail.map((item, index) => ({
+//       label: item.name,
+//       icon: <Folder size={22} className="text-[#0890A8]" />,
+//       isCurrent: index === folderTrail.length - 1,
+//       onClick:
+//         index < folderTrail.length - 1
+//           ? () => handleBreadcrumbClick(index)
+//           : undefined,
+//     }));
+
+//     return [root, ...trailItems];
+//   }, [folderTrail]);
+
+//   // =============================
+//   // LOADING & ERROR STATES
+//   // =============================
+//   if (isLoading) {
+//     return (
+//       <div className="flex items-center justify-center min-h-[400px]">
+//         <LoadingSpinner />
+//       </div>
+//     );
+//   }
+
+//   if (error) {
+//     return (
+//       <div className="flex items-center justify-center min-h-[400px]">
+//         <p className="text-red-500">
+//           Failed to load shared content. Try again.
+//         </p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div>
+//       {/* Breadcrumb */}
+//       <div className="flex items-center gap-2 mb-8">
+//         <Breadcrumb items={breadcrumbItems} />
+//       </div>
+
+//       {/* ======================= */}
+//       {/* FOLDERS SECTION */}
+//       {/* ======================= */}
+//       <section className="mb-10">
+//         <h2 className="text-xl font-medium text-[#444444] mb-4">
+//           {selectedFolder ? 'Subfolders' : 'Shared Folders'} (
+//           {displayedFolders.length})
+//         </h2>
+
+//         {displayedFolders.length === 0 ? (
+//           <p className="text-center py-8 text-gray-500">
+//             {selectedFolder
+//               ? 'This folder has no subfolders.'
+//               : 'No shared folders found.'}
+//           </p>
+//         ) : (
+//           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+//             {displayedFolders.map((folder) => (
+//               <FolderItem
+//                 key={folder._id}
+//                 id={folder._id}
+//                 name={folder.name}
+//                 isBookmarked={folder.isBookmarked}
+//                 onClick={() =>
+//                   handleFolderClick(folder._id, folder.name)
+//                 }
+//               />
+//             ))}
+//           </div>
+//         )}
+//       </section>
+
+//       {/* ======================= */}
+//       {/* QUIZ SECTION */}
+//       {/* ======================= */}
+//       <section>
+//         <h2 className="text-xl font-medium text-[#444444] mb-4">
+//           {selectedFolder
+//             ? 'Quiz Sets in this Folder'
+//             : 'Shared Quiz Sets'}{' '}
+//           ({displayedQuizzes.length})
+//         </h2>
+
+//         {displayedQuizzes.length === 0 ? (
+//           <p className="text-center py-8 text-gray-500">
+//             {selectedFolder
+//               ? 'This folder contains no quiz sets.'
+//               : 'No shared quiz sets found.'}
+//           </p>
+//         ) : (
+//           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+//             {displayedQuizzes.map((quiz: any) => (
+//               <QuizSetItem
+//                 key={quiz._id}
+//                 id={quiz._id}
+//                 title={quiz.title}
+//                 description={quiz.description || ''}
+//                 tags={quiz.tags || []}
+//                 creator={{
+//                   name: quiz.createdBy?.name || 'Unknown',
+//                   shared: true,
+//                 }}
+//                 rating={0}
+//                 isBookmarked={quiz.isBookmarked}
+//               />
+//             ))}
+//           </div>
+//         )}
+//       </section>
+//     </div>
+//   );
+// }
+"use client";
+
+import React, { useMemo, useState } from "react";
+import { Folder } from "lucide-react";
+
+import { useSharedContent } from "@/services/features/shared";
+
+import { Breadcrumb, BreadcrumbItem } from "@/components/ui/Breadcrumb";
+import { FolderItem } from "@/components/ui/folder";
+import { LoadingSpinner } from "@/components/ui/loaders";
+import QuizGrid from "@/components/ui/quiz/QuizGrid";
 
 export default function SharedPage() {
-  const [folderTrail, setFolderTrail] = useState<TrailItem[]>([]);
-  const currentUser = useAppSelector(selectUser);
-  const currentUserId =
-    currentUser?._id || (currentUser as unknown as { id?: string })?.id || '';
+  const [path, setPath] = useState<string[]>([]);
 
-  const selectedTrailItem = folderTrail[folderTrail.length - 1];
-  const selectedFolderId = selectedTrailItem?.id;
+  const { data: sharedContent, isLoading, error } = useSharedContent();
 
-  // Fetch shared content using the API
-  const {
-    data: sharedContent,
-    isLoading: isSharedLoading,
-    error: sharedError,
-  } = useSharedContent();
+  const folderMap = useMemo(() => {
+    const map = new Map<string, any>();
+    sharedContent?.folders?.forEach((f) => map.set(f._id, f));
+    return map;
+  }, [sharedContent]);
 
-  const {
-    data: selectedFolder,
-    isLoading: isSelectedFolderInitialLoading,
-    isFetching: isSelectedFolderFetching,
-    error: selectedFolderError,
-  } = useFolderDetails(selectedFolderId, !!selectedFolderId);
+  const currentFolderId = path[path.length - 1] || null;
+  const currentFolder = currentFolderId ? folderMap.get(currentFolderId) : null;
 
-  const isFolderLoading =
-    (!!selectedFolderId && (isSelectedFolderInitialLoading || isSelectedFolderFetching)) ||
-    false;
+  const rootFolders = useMemo(() => {
+    if (!sharedContent) return [];
+    return sharedContent.folders.filter((f) => !f.parentFolder);
+  }, [sharedContent]);
 
-  const handleFolderClick = (id: string, name: string) => {
-    if (!id) {
-      return;
-    }
-    setFolderTrail((prev) => {
-      const alreadyInTrail = prev.find((item) => item.id === id);
-      if (alreadyInTrail) {
-        const index = prev.findIndex((item) => item.id === id);
-        return prev.slice(0, index + 1);
-      }
-      return [...prev, { id, name }];
-    });
-  };
+  const displayedFolders = useMemo(() => {
+    if (!currentFolder) return rootFolders;
+    return (currentFolder.subFolders || [])
+      .map((id: string) => folderMap.get(id))
+      .filter(Boolean);
+  }, [currentFolder, rootFolders, folderMap]);
 
-  const handleBreadcrumbClick = (trailIndex: number) => {
-    if (trailIndex < 0) {
-      setFolderTrail([]);
-      return;
-    }
-    setFolderTrail((prev) => prev.slice(0, trailIndex + 1));
-  };
+  const displayedQuizzes = useMemo(() => {
+    if (!currentFolder) return sharedContent?.quizzes || [];
+    return currentFolder.quizzes || [];
+  }, [sharedContent, currentFolder]);
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    const rootItem: BreadcrumbItem = {
-      label: 'Shared With Me',
-      icon: <Folder size={24} className="text-[#0890A8]" />,
-      onClick:
-        folderTrail.length > 0 ? () => handleBreadcrumbClick(-1) : undefined,
-      isCurrent: folderTrail.length === 0,
+    const root: BreadcrumbItem = {
+      label: "Shared With Me",
+      isCurrent: path.length === 0,
+      onClick: path.length > 0 ? () => setPath([]) : undefined,
     };
 
-    const trailItems = folderTrail.map((item, index) => ({
-      label: item.name,
-      icon: <Folder size={24} className="text-[#0890A8]" />,
-      isCurrent: index === folderTrail.length - 1,
-      onClick:
-        index === folderTrail.length - 1
-          ? undefined
-          : () => handleBreadcrumbClick(index),
-    }));
-
-    return [rootItem, ...trailItems];
-  }, [folderTrail]);
-
-  const accessibleSubFolders = useMemo(() => {
-    if (!selectedFolder || !selectedFolderId) {
-      return [];
-    }
-
-    const subFolders = Array.isArray(selectedFolder.subFolders)
-      ? selectedFolder.subFolders
-      : [];
-
-    return subFolders
-      .map((folder: any) => {
-        const folderId = getIdString(folder?._id || folder?.id || folder);
-        if (!folderId) return null;
-        const ownerId = getIdString(folder?.owner);
-        const sharedList = Array.isArray(folder?.sharedWith)
-          ? folder.sharedWith
-          : [];
-
-        const hasAccess =
-          ownerId === currentUserId ||
-          sharedList.some((share: any) => {
-            const sharedUserId = getIdString(share?.user);
-            return sharedUserId === currentUserId;
-          });
-
-        if (!hasAccess) {
-          return null;
-        }
+    const items = path
+      .map((id, index) => {
+        const folder = folderMap.get(id);
+        if (!folder) return null;
 
         return {
-          _id: folderId,
-          name: folder?.name || 'Untitled Folder',
-          isBookmarked: Boolean(folder?.isBookmarked),
+          label: folder.name,
+          icon: <Folder size={20} className="text-[#0890A8]" />,
+          isCurrent: index === path.length - 1,
+          onClick:
+            index === path.length - 1
+              ? undefined
+              : () => setPath(path.slice(0, index + 1)),
         };
       })
-      .filter((folder: any) => folder !== null);
-  }, [selectedFolderId, selectedFolder, currentUserId]);
+      .filter(Boolean) as BreadcrumbItem[];
 
-  const displayedFolders = selectedFolderId
-    ? accessibleSubFolders
-    : sharedContent?.folders || [];
+    return [root, ...items];
+  }, [path, folderMap]);
 
-  const normalizedQuizzes = useMemo(() => {
-    const quizzesSource = selectedFolderId
-      ? Array.isArray(selectedFolder?.quizzes)
-        ? selectedFolder?.quizzes
-        : []
-      : sharedContent?.quizzes || [];
-
-    return quizzesSource
-      .map((quiz: any) => {
-        const quizId = getIdString(quiz?._id || quiz?.id || quiz);
-        if (!quizId) return null;
-
-        const creatorRaw = quiz?.createdBy;
-        let creatorName = 'Unknown';
-
-        if (creatorRaw) {
-          if (typeof creatorRaw === 'string') {
-            creatorName = creatorRaw;
-          } else if (typeof creatorRaw === 'object') {
-            creatorName = creatorRaw.name || creatorName;
-          }
-        }
-
-        return {
-          ...quiz,
-          _id: quizId,
-          createdBy: {
-            ...(typeof creatorRaw === 'object' ? creatorRaw : {}),
-            name: creatorName,
-          },
-          isBookmarked: Boolean(quiz?.isBookmarked),
-        };
-      })
-      .filter((quiz: any) => quiz !== null);
-  }, [selectedFolderId, selectedFolder?.quizzes, sharedContent?.quizzes]);
-
-  const folderSectionTitle = selectedFolderId ? 'Subfolders' : 'Shared Folders';
-  const quizSectionTitle = selectedFolderId
-    ? 'Quiz Sets in this Folder'
-    : 'Shared Quiz Sets';
-
-  const folderCount = selectedFolderId
-    ? displayedFolders.length
-    : sharedContent?.totalCount?.folders || 0;
-
-  const quizCount = selectedFolderId
-    ? normalizedQuizzes.length
-    : sharedContent?.totalCount?.quizzes || 0;
-
-  if (isSharedLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner />
@@ -202,104 +292,56 @@ export default function SharedPage() {
     );
   }
 
-  if (sharedError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-red-500 mb-2">Failed to load shared content</p>
-          <p className="text-sm text-gray-500">Please try again later</p>
-        </div>
+        <p className="text-red-500">Failed to load shared content.</p>
       </div>
     );
   }
 
   return (
-    <div className="">
+    <div>
       <div className="flex items-center gap-2 mb-8">
         <Breadcrumb items={breadcrumbItems} />
-        <div className="flex items-center justify-center bg-yellow-100 h-8 w-8 rounded-full ml-2">
-          <span className="text-yellow-800 font-medium">H</span>
-        </div>
       </div>
 
-      {selectedFolderError && (
-        <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-          Unable to load the selected folder. Returning to the shared overview
-          might help.
-        </div>
-      )}
-
-      {/* Folders Section */}
+      {/* FOLDERS SECTION */}
       <section className="mb-8">
-        <h2 className="text-xl font-medium text-[#444444] mb-4">
-          {folderSectionTitle} ({folderCount})
-        </h2>
+        <h2 className="text-xl font-medium text-[#444444] mb-4">Folders</h2>
 
-        {isFolderLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <LoadingSpinner />
-          </div>
-        ) : displayedFolders.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {displayedFolders.map((folder: any) => (
-              <FolderItem
-                key={folder._id}
-                id={folder._id}
-                name={folder.name}
-                isBookmarked={Boolean(folder.isBookmarked)}
-                onClick={() => handleFolderClick(folder._id, folder.name)}
-              />
-            ))}
+        {displayedFolders.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No folders found.
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            <p>
-              {selectedFolderId
-                ? 'This folder does not contain any subfolders you can access.'
-                : 'No shared folders found'}
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {displayedFolders.map((f: any) => (
+              <FolderItem
+                key={f._id}
+                id={f._id}
+                name={f.name}
+                isBookmarked={f.isBookmarked}
+                onClick={() => setPath([...path, f._id])}
+              />
+            ))}
           </div>
         )}
       </section>
 
-      {/* Quiz Sets Section */}
+      {/* QUIZZES SECTION */}
       <section>
-        <h2 className="text-xl font-medium text-[#444444] mb-4">
-          {quizSectionTitle} ({quizCount})
-        </h2>
+        <h2 className="text-xl font-medium text-[#444444] mb-4">Quiz Sets</h2>
 
-        {isFolderLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <LoadingSpinner />
-          </div>
-        ) : normalizedQuizzes.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {normalizedQuizzes.map((quiz: any) => (
-              <QuizSetItem
-                key={quiz._id}
-                id={quiz._id}
-                title={quiz.title}
-                description={quiz.description || ''}
-                tags={quiz.tags || []}
-                creator={{
-                  name: quiz.createdBy?.name || 'Unknown',
-                  isCurrentUser: false,
-                  shared: true,
-                }}
-                rating={0}
-                isBookmarked={Boolean(quiz.isBookmarked)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <p>
-              {selectedFolderId
-                ? 'No quiz sets found in this folder.'
-                : 'No shared quiz sets found'}
-            </p>
-          </div>
-        )}
+        <QuizGrid
+          quizzes={displayedQuizzes}
+          isLoading={false}
+          emptyMessage={
+            currentFolder
+              ? "This folder contains no quiz sets."
+              : "No shared quiz sets found."
+          }
+        />
       </section>
     </div>
   );

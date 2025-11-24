@@ -138,9 +138,8 @@ const ReviseQuizPage: React.FC = () => {
             {showAnswers && (
               <div className="absolute top-2 right-2">
                 <div
-                  className={`rounded-full border-2 p-1 ${
-                    isCorrect ? 'border-green-500' : 'border-red-500'
-                  }`}
+                  className={`rounded-full border-2 p-1 ${isCorrect ? 'border-green-500' : 'border-red-500'
+                    }`}
                 >
                   {isCorrect ? (
                     <Check size={16} className="text-green-500" />
@@ -158,7 +157,7 @@ const ReviseQuizPage: React.FC = () => {
             {type === 'mcq' && (
               <div className="flex flex-col gap-5 text-[#444444]">
                 <div className="flex items-center gap-5 ">
-                  <p>{q.question}</p>
+                  <div dangerouslySetInnerHTML={{ __html: q.question || '' }} />
                   <p>{q.image && <MediaDisplay imageUrl={q.image} />}</p>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -178,16 +177,15 @@ const ReviseQuizPage: React.FC = () => {
                         <div
                           onClick={() => handleInputChange(q._id, option.value)}
                           className={`w-full max-w-xl px-4 py-3 rounded-xl border-2 transition-all cursor-pointer select-none
-                            ${
-                              showAnswers
-                                ? isOptionCorrect
-                                  ? 'border-green-500 bg-green-50'
-                                  : userSelected
-                                    ? 'border-red-500 bg-red-50'
-                                    : 'border-[#ACACAC]'
+                            ${showAnswers
+                              ? isOptionCorrect
+                                ? 'border-green-500 bg-green-50'
                                 : userSelected
-                                  ? 'border-[#0890A8] bg-white'
-                                  : 'border-[#ACACAC] hover:border-[#0890A8] hover:bg-gray-50'
+                                  ? 'border-red-500 bg-red-50'
+                                  : 'border-[#ACACAC]'
+                              : userSelected
+                                ? 'border-[#0890A8] bg-white'
+                                : 'border-[#ACACAC] hover:border-[#0890A8] hover:bg-gray-50'
                             }
                             ${submitted ? 'opacity-70 cursor-not-allowed' : ''}
                           `}
@@ -214,7 +212,7 @@ const ReviseQuizPage: React.FC = () => {
             {type === 'fillin' && (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-5 ">
-                  <p>{q.question}</p>
+                  <div dangerouslySetInnerHTML={{ __html: q.question || '' }} />
                   <p>{q.image && <MediaDisplay imageUrl={q.image} />}</p>
                 </div>
                 <input
@@ -239,7 +237,7 @@ const ReviseQuizPage: React.FC = () => {
                 {!flipped[q._id] && !submitted && (
                   <div className="flex flex-col justify-center items-center gap-10 p-5 rounded-lg bg-white">
                     <div className="flex items-center gap-5 ">
-                      <p className="text-lg font-semibold">{q.question}</p>
+                      <div className="text-lg font-semibold" dangerouslySetInnerHTML={{ __html: q.question || '' }} />
                       {q.image && <MediaDisplay imageUrl={q.image} />}
                     </div>
                     <Button
@@ -259,7 +257,7 @@ const ReviseQuizPage: React.FC = () => {
                 {(flipped[q._id] || submitted) && (
                   <div className="flex flex-col justify-center items-center gap-3 p-6 rounded-lg bg-white">
                     <div className="flex justify-center items-center gap-2">
-                      <p className="text-base text-gray-700 mt-2">{q.answer}</p>
+                      <div className="text-base text-gray-700 mt-2" dangerouslySetInnerHTML={{ __html: q.answer || '' }} />
                       {q.image && <MediaDisplay imageUrl={q.image} />}
                     </div>
 

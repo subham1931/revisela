@@ -51,10 +51,10 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {quizzes.slice(0, 3).map((quizSet) => {
-            console.log(
-              `Quiz: ${quizSet.title} | Bookmarked:`,
-              quizSet.isBookmarked
-            );
+            // console.log(
+            //   `Quiz: ${quizSet.title} | Bookmarked:`,
+            //   quizSet.isBookmarked
+            // );
 
             return (
               <QuizCard

@@ -46,7 +46,7 @@ const QuizDetailPage: React.FC = () => {
     if (quizId) router.push(`${quizId}/revise`);
   };
 
-  
+
 
   if (isLoading)
     return (
@@ -116,7 +116,7 @@ const QuizDetailPage: React.FC = () => {
             </label>
             <input
               type="text"
-              value={quiz.tags.join(', ')}
+              value={quiz.tags?.join(', ') ?? ''}
               readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
             />
@@ -152,11 +152,9 @@ const QuizDetailPage: React.FC = () => {
                     <div className="flex flex-col flex-1 ">
                       <label className="font-semibold mb-1">Front</label>
                       <div className="flex items-center justify-center gap-2">
-                        <input
-                          value={q.question || ''}
-                          readOnly
-                          placeholder="No content"
-                          className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 cursor-not-allowed"
+                        <div
+                          dangerouslySetInnerHTML={{ __html: q.question || 'No content' }}
+                          className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 cursor-not-allowed min-h-[42px]"
                         />
                         {/* {q.image && <MediaDisplay imageUrl={q.image} />} */}
                       </div>
@@ -164,11 +162,9 @@ const QuizDetailPage: React.FC = () => {
 
                     <div className="flex flex-col flex-1">
                       <label className="font-semibold mb-1">Back</label>
-                      <input
-                        value={q.answer || ''}
-                        readOnly
-                        placeholder="No content"
-                        className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 cursor-not-allowed"
+                      <div
+                        dangerouslySetInnerHTML={{ __html: q.answer || 'No content' }}
+                        className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 cursor-not-allowed min-h-[42px]"
                       />
                       {/* {q.answerImage && (
                         <MediaDisplay imageUrl={q.answerImage} />
@@ -185,11 +181,9 @@ const QuizDetailPage: React.FC = () => {
                         Question
                       </label>
                       <div className="my-2 flex gap-2">
-                        <input
-                          value={q.question || ''}
-                          readOnly
-                          placeholder="Enter text here"
-                          className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 cursor-not-allowed"
+                        <div
+                          dangerouslySetInnerHTML={{ __html: q.question || 'Enter text here' }}
+                          className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 cursor-not-allowed min-h-[42px]"
                         />
                         {/* {q.image && <MediaDisplay imageUrl={q.image} />} */}
                       </div>
@@ -236,11 +230,10 @@ const QuizDetailPage: React.FC = () => {
                           return (
                             <div
                               key={i}
-                              className={`transition rounded-full flex items-center justify-center w-6 h-6 ${
-                                isCorrect
-                                  ? 'border-2 border-green-500'
-                                  : 'border border-gray-300 text-gray-500'
-                              }`}
+                              className={`transition rounded-full flex items-center justify-center w-6 h-6 ${isCorrect
+                                ? 'border-2 border-green-500'
+                                : 'border border-gray-300 text-gray-500'
+                                }`}
                               style={{ aspectRatio: '1 / 1' }}
                             >
                               {label}
@@ -257,17 +250,13 @@ const QuizDetailPage: React.FC = () => {
                   <div className="my-2 flex flex-col gap-2">
                     <label className="font-medium">Question</label>
                     <div className="my-2 flex gap-2">
-                      <input
-                        type="text"
-                        value={
-                          q.question
-                            ? q.question.replace(/_+/g, `??${q.answer}??`) +
-                              ' ?'
-                            : ''
-                        }
-                        readOnly
-                        placeholder="No question"
-                        className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: q.question
+                            ? q.question.replace(/_+/g, `??${q.answer}??`) + ' ?'
+                            : 'No question'
+                        }}
+                        className="w-full border border-gray-300 p-2 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed min-h-[42px]"
                       />
                       {/* {q.image && <MediaDisplay imageUrl={q.image} />} */}
                     </div>
@@ -281,15 +270,14 @@ const QuizDetailPage: React.FC = () => {
 
                 {/* Type badge */}
                 <p
-                  className={`absolute bottom-0 right-0 text-black text-sm px-3 py-2 rounded-t-xl rounded-br-lg rounded-r-none ${
-                    type === 'mcq'
-                      ? 'bg-[#ADF5C6]'
-                      : type === 'fillin'
-                        ? 'bg-[#FFCDFD]'
-                        : type === 'flashcard'
-                          ? 'bg-[#FFCE94]'
-                          : 'bg-gray-500'
-                  }`}
+                  className={`absolute bottom-0 right-0 text-black text-sm px-3 py-2 rounded-t-xl rounded-br-lg rounded-r-none ${type === 'mcq'
+                    ? 'bg-[#ADF5C6]'
+                    : type === 'fillin'
+                      ? 'bg-[#FFCDFD]'
+                      : type === 'flashcard'
+                        ? 'bg-[#FFCE94]'
+                        : 'bg-gray-500'
+                    }`}
                 >
                   {typeLabel}
                 </p>

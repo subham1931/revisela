@@ -173,11 +173,11 @@ const FolderItem: React.FC<FolderItemProps> = ({
           },
         },
         {
-          label: isBookmarked ? 'Remove Bookmark' : 'Bookmark',
+          label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
           icon: (
             <Bookmark
               size={16}
-              className={isBookmarked ? 'fill-[#0890A8] text-[#0890A8]' : ''}
+              className={isBookmarked ? 'fill-[#444444] text-[#444444]' : ''}
             />
           ),
           onClick: handleBookmark,
