@@ -185,6 +185,10 @@ export const QUIZ_ENDPOINTS = {
     url: `${API_BASE_URL}/quizzes`,
     method: 'GET',
   } as EndpointConfig,
+  GET_RECENT_QUIZZES: {
+    url: `${API_BASE_URL}/quizzes/recent`,
+    method: 'GET',
+  } as EndpointConfig,
   GET_MY_QUIZZES: {
     url: `${API_BASE_URL}/quizzes/my-quizzes`,
     method: 'GET',
@@ -212,6 +216,10 @@ export const QUIZ_ENDPOINTS = {
     url: `${API_BASE_URL}/quizzes`,
     method: 'POST',
   } as EndpointConfig,
+  CREATE_QUIZ_IN_FOLDER: (folderId: string) => ({
+    url: `${API_BASE_URL}/quizzes/folder/${folderId}`,
+    method: 'POST',
+  }) as EndpointConfig,
   UPDATE_QUIZ: (quizId: string) =>
     ({
       url: `${API_BASE_URL}/quizzes/${quizId}`,
@@ -230,11 +238,17 @@ export const QUIZ_ENDPOINTS = {
       method: 'POST',
     }) as EndpointConfig,
 
-  MOVE_QUIZ: (quizId: string, folderId: string) =>
+  MOVE_QUIZ: (quizId: string) =>
     ({
-      url: `${API_BASE_URL}/quizzes/${quizId}/move/${folderId}`,
-      method: 'PATCH',
+      url: `${API_BASE_URL}/folders/quizzes/${quizId}/move`,
+      method: 'POST',
     }) as EndpointConfig,
+
+  // MOVE_QUIZ: (quizId: string, folderId: string) =>
+  //   ({
+  //     url: `${API_BASE_URL}/quizzes/${quizId}/move/${folderId}`,
+  //     method: 'PATCH',
+  //   }) as EndpointConfig,
 
   GET_QUIZZES_BY_TAG: (tag: string) =>
     ({

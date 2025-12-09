@@ -31,6 +31,8 @@ export const QUERY_KEYS = {
     // 🆕 NEW — get quizzes by folder
     byFolder: (folderId?: string) =>
       ['quizzes', 'folder', folderId ?? 'root'] as const,
+    public: ['quizzes', 'public'] as const,
+    recent: ['quizzes', 'recent'] as const,
   },
 
   // Folder related keys

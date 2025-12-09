@@ -26,6 +26,8 @@ interface QuizGridProps {
   onQuizDelete?: (id: string) => void;
   className?: string;
   gridClassName?: string;
+  isShared?: boolean; // indicates if quizzes are shared
+  parentRoute?: string;
 }
 
 const QuizGrid: React.FC<QuizGridProps> = ({
@@ -36,6 +38,8 @@ const QuizGrid: React.FC<QuizGridProps> = ({
   onQuizDelete,
   className = '',
   gridClassName = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4',
+  isShared = false,
+  parentRoute,
 }) => {
   return (
     <div className={className}>
@@ -49,10 +53,6 @@ const QuizGrid: React.FC<QuizGridProps> = ({
       ) : quizzes && quizzes.length > 0 ? (
         <div className={`grid ${gridClassName}`}>
           {quizzes.map((quiz) => {
-            // console.log(
-            //   `📘 Quiz: ${quiz} | Bookmarked: ${quiz.isBookmarked}`
-            // );
-
             return (
               <QuizCard
                 key={quiz._id}
@@ -61,10 +61,12 @@ const QuizGrid: React.FC<QuizGridProps> = ({
                 description={quiz.description || ' '}
                 tags={quiz.tags || []}
                 isBookmarked={quiz.isBookmarked}
+                isShared={isShared}
                 user={{
                   name: quiz.createdBy?.name || 'You',
                   profileImage: quiz.createdBy?.profileImage,
                 }}
+                parentRoute={parentRoute}
                 onDelete={onQuizDelete}
               />
             );

@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { Folder, GraduationCap } from 'lucide-react';
 
@@ -43,9 +43,34 @@ const RootNavbar = () => {
     });
   };
 
-  const handleCreateQuizSet = () => router.push(ROUTES.DASHBOARD.QUIZ_SETS.CREATE);
+  const searchParams = useSearchParams();
+  const folderId = searchParams.get('folderId');
+
+  const handleCreateQuizSet = () => {
+    // If we are on the library page, we want to stay there and open the "create" view
+    if (pathname.startsWith(ROUTES.DASHBOARD.LIBRARY)) {
+      const currentParams = new URLSearchParams(searchParams.toString());
+      currentParams.set('action', 'create-quiz');
+      router.push(`${pathname}?${currentParams.toString()}`);
+    } else {
+      // Fallback for other pages: go to dedicated create page or library create mode
+      // User specific request: "dont make route for create set IF i was on dashboard/library"
+      // Implies if elsewhere, maybe okay? 
+      // But let's route to library create mode for consistency if possible, or just create-set page.
+      // Let's stick to create-set page for non-library contexts to avoid confusion, or folderId propagation issues.
+      // But if folderId is known, we might want library.
+      // Simplifying:
+      const route = folderId
+        ? `${ROUTES.DASHBOARD.QUIZ_SETS.CREATE}?folderId=${folderId}`
+        : ROUTES.DASHBOARD.QUIZ_SETS.CREATE;
+      router.push(route);
+    }
+  };
   const handleCreateFolder = () => setIsFolderModalOpen(true);
   const handleCreateClass = () => router.push(ROUTES.DASHBOARD.CLASSES.CREATE);
+
+  // ✅ Debounce search effect (waits 400ms after user stops typing)
+  const pathname = usePathname();
 
   // ✅ Debounce search effect (waits 400ms after user stops typing)
   useEffect(() => {
@@ -55,32 +80,36 @@ const RootNavbar = () => {
       if (trimmed) {
         router.push(`/dashboard/search?query=${encodeURIComponent(trimmed)}`);
       } else {
-        // No query → clear results or stay idle
-        router.push('/dashboard');
+        // Only redirect to dashboard if we are currently on the search page
+        if (pathname.includes('/dashboard/search')) {
+          router.push('/dashboard');
+        }
       }
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [searchQuery, router]);
+  }, [searchQuery, router, pathname]);
 
   return (
     <>
       <div className="fixed z-[100] h-[77px] top-0 left-0 right-0 flex items-center justify-between px-[15px] sm:px-[30px] py-[22px] bg-white">
-        <Image src={Logo} alt="Logo" className="w-[102px]" />
-
-        {/* ✅ Live search bar */}
-        <div className="relative max-w-[735px] w-full">
-          <div className="flex items-center relative">
-            <SearchIcon className="absolute left-3 text-gray-600" size={20} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for Quiz Sets, People, Subjects..."
-              className="w-full py-2 px-10 border border-[#ACACAC] rounded-lg focus:outline-[#0890A8] cursor-text"
-            />
+        <div className='flex flex-1 justify-start gap-28'>
+          <Image src={Logo} alt="Logo" className="w-[102px]" />
+          {/* ✅ Live search bar */}
+          <div className="relative max-w-[735px] w-full">
+            <div className="flex items-center relative">
+              <SearchIcon className="absolute left-3 text-gray-600" size={20} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for Quiz Sets, People, Subjects..."
+                className="w-full py-2 px-10 border border-[#ACACAC] rounded-lg focus:outline-[#0890A8] cursor-text"
+              />
+            </div>
           </div>
         </div>
+
 
         {/* Right side buttons */}
         <div className="flex items-center gap-2">

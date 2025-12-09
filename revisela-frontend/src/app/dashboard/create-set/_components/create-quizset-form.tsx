@@ -13,9 +13,10 @@ import { ActionDropdown } from '@/components/ui';
 
 interface CreateSetFormProps {
   onImport: (questions: Question[]) => void;
+  onBack?: () => void;
 }
 
-export default function CreateSetForm({ onImport }: CreateSetFormProps) {
+export default function CreateSetForm({ onImport, onBack }: CreateSetFormProps) {
   const { register, setValue } = useFormContext();
   const [tagInput, setTagInput] = useState('');
   const [showImportModal, setShowImportModal] = useState(false); // modal toggle
@@ -23,6 +24,8 @@ export default function CreateSetForm({ onImport }: CreateSetFormProps) {
   const [importText, setImportText] = useState('');
   const [separatorSides, setSeparatorSides] = useState('comma'); // 'comma' | 'tab'
   const [separatorCards, setSeparatorCards] = useState('newline'); // 'newline' | 'semicolon'
+
+  console.log('CreateSetForm: onBack prop present?', !!onBack);
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

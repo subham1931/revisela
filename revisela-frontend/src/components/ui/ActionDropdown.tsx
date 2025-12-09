@@ -7,7 +7,7 @@ import { Dropdown } from './Dropdown';
 export interface ActionDropdownItem {
   label: ReactNode;
   icon?: ReactNode;
-  onClick: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
   variant?: 'default' | 'danger';
   disabled?: boolean;
   className?: string;
@@ -38,7 +38,7 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({
     ),
     onClick: (e: React.MouseEvent<HTMLDivElement>) => {
       e.stopPropagation();
-      item.onClick(e);
+      item.onClick?.(e);
     },
     className:
       item.className ?? (item.variant === 'danger' ? 'text-red-500' : ''),

@@ -22,11 +22,12 @@ export default function BookmarksPage() {
     useBookmarkedQuizzes();
 
   // Unified empty-state condition
+  const bookmarkedQuizzes = bookmarkedQuizzesResponse || [];
   const noBookmarks =
     !foldersLoading &&
     !quizzesLoading &&
     bookmarkedFolders.length === 0 &&
-    (bookmarkedQuizzesResponse?.length ?? 0) === 0;
+    bookmarkedQuizzes.length === 0;
 
   return (
     <div>
@@ -74,21 +75,22 @@ export default function BookmarksPage() {
               <div className="p-4 bg-white rounded-lg border shadow-sm">
                 <p className="text-gray-500">Loading bookmarked quizzes...</p>
               </div>
-            ) : bookmarkedQuizzesResponse?.length === 0 ? null : (
+            ) : bookmarkedQuizzes.length === 0 ? null : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {bookmarkedQuizzesResponse.map((quizSet: any) => (
+                {bookmarkedQuizzes.map((quizSet: any) => (
                   <QuizCard
                     key={quizSet._id}
                     id={quizSet._id}
                     title={quizSet.title}
                     description={quizSet.description || ''}
                     tags={quizSet.tags || []}
-                    creator={{
+                    user={{
                       name: quizSet.createdBy?.name || 'Unknown',
-                      isCurrentUser: false,
+                      profileImage: quizSet.createdBy?.profileImage,
                     }}
                     rating={quizSet.rating}
                     isBookmarked={true}
+                    parentRoute="dashboard/bookmarks"
                   />
                 ))}
               </div>

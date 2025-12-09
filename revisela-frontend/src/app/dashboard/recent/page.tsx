@@ -2,45 +2,10 @@
 
 import React from 'react';
 
-import { QuizSetItem } from '../library/components';
 import QuizCard from '@/components/ui/quiz/QuizCard';
 import { usePublicQuizzes } from '@/services/features/quizzes';
 
 export default function RecentPage() {
-  // Mock quiz sets data - use the same data as in RecentSection or fetch from API
-  const recentQuizSets = [
-    {
-      id: '1',
-      title: 'IB Calculus',
-      description:
-        'Designed for both SL and HL students, this set covers key topics such as limits, differentiation, and integration, along with their real-world applications.',
-      tags: ['Maths', 'IB', 'Calculus'],
-      creator: { name: 'Sam Smith', isCurrentUser: false },
-      rating: 2,
-      isBookmarked: false,
-    },
-    {
-      id: '2',
-      title: 'IB Calculus',
-      description:
-        'Designed for both SL and HL students, this set covers key topics such as limits, differentiation, and integration, along with their real-world applications.',
-      tags: ['Maths', 'IB', 'Calculus'],
-      creator: { name: 'Sam Smith', isCurrentUser: false },
-      rating: 2,
-      isBookmarked: false,
-    },
-    {
-      id: '3',
-      title: 'IB Calculus',
-      description:
-        'Designed for both SL and HL students, this set covers key topics such as limits, differentiation, and integration, along with their real-world applications.',
-      tags: ['Maths', 'IB', 'Calculus'],
-      creator: { name: 'John Doe', isCurrentUser: false },
-      rating: 2,
-      isBookmarked: false,
-    },
-    // Add more items to match your image
-  ];
 
   const { data: publicQuizzesData, isLoading } = usePublicQuizzes(3, 0);
   const recentQuizzes = publicQuizzesData?.results || [];
@@ -74,7 +39,7 @@ export default function RecentPage() {
                   ? quiz.createdBy?.profileImage
                   : undefined,
               }}
-              parentRoute="dashboard"
+              parentRoute="dashboard/recent"
               isBookmarked={!!quiz.isBookmarked}
             />
           ))}

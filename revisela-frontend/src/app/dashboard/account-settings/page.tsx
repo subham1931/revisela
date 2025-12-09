@@ -51,6 +51,11 @@ const AccountSettings = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const [activeEditField, setActiveEditField] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (userData) {
@@ -71,6 +76,23 @@ const AccountSettings = () => {
       if (storedHistory) setFieldEditHistory(JSON.parse(storedHistory));
     }
   }, [userData]);
+
+  // ... (keep existing handlers)
+
+  if (!isMounted) {
+    return null; // or a skeleton that matches server output if possible, but null is safer for now
+  }
+
+  if (isLoadingUser) {
+    return (
+      <ContentLoader
+        message="Loading your profile..."
+        size="lg"
+        variant="primary"
+        className="h-screen"
+      />
+    );
+  }
 
   const handleUpdateProfile = (
     field: keyof typeof userProfile,
@@ -190,67 +212,58 @@ const AccountSettings = () => {
     });
   };
 
- const handleImageUpload = async (
-  event: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  setIsUploadingImage(true);
+    setIsUploadingImage(true);
 
-  try {
-    uploadProfileImage(
-      { file },
-      {
-        onSuccess: (data: any) => {
-          setProfileImage(data?.url || '');
-          dispatch(updateProfileImage(data?.url || ''));
-          toast({
-            title: 'Profile Updated',
-            description: 'Your profile image has been updated successfully.',
-          });
-        },
-        onError: (error: any) => {
-          console.error('Upload failed:', error); // <-- log the error
-          toast({
-            title: 'Upload Failed',
-            description: error.message || 'Failed to upload image.',
-            type: 'error',
-          });
-        },
-        onSettled: () => setIsUploadingImage(false),
-      }
-    );
-  } catch (error: any) {
-    console.error('Unexpected error during upload:', error); // <-- log the error
-    toast({
-      title: 'Upload Failed',
-      description: error.message || 'Failed to upload image.',
-      type: 'error',
-    });
-    setIsUploadingImage(false);
-  }
-};
+    try {
+      uploadProfileImage(
+        { file },
+        {
+          onSuccess: (data: any) => {
+            setProfileImage(data?.url || '');
+            dispatch(updateProfileImage(data?.url || ''));
+            toast({
+              title: 'Profile Updated',
+              description: 'Your profile image has been updated successfully.',
+            });
+          },
+          onError: (error: any) => {
+            console.error('Upload failed:', error); // <-- log the error
+            toast({
+              title: 'Upload Failed',
+              description: error.message || 'Failed to upload image.',
+              type: 'error',
+            });
+          },
+          onSettled: () => setIsUploadingImage(false),
+        }
+      );
+    } catch (error: any) {
+      console.error('Unexpected error during upload:', error); // <-- log the error
+      toast({
+        title: 'Upload Failed',
+        description: error.message || 'Failed to upload image.',
+        type: 'error',
+      });
+      setIsUploadingImage(false);
+    }
+  };
 
 
   const triggerFileInput = () => fileInputRef.current?.click();
   const openEditModal = (field: string) => setActiveEditField(field);
   const closeEditModal = () => setActiveEditField(null);
 
-  if (isLoadingUser) {
-    return (
-      <ContentLoader
-        message="Loading your profile..."
-        size="lg"
-        variant="primary"
-        className="h-screen"
-      />
-    );
-  }
+  // Duplicate loader removal
 
   return (
-    <div className="max-w-4xl">
-      <h1 className="text-[18px] font-semibold text-[#0890A8] mb-6">
+    <div className="">
+      <h1 className="text-3xl font-bold text-[#0890A8] mb-6">
         Account Settings
       </h1>
 
@@ -267,9 +280,8 @@ const AccountSettings = () => {
                 <Image
                   src={profileImage}
                   alt="Profile"
-                  className={`h-full w-full object-cover ${
-                    isUploadingImage ? 'blur-sm' : ''
-                  }`}
+                  className={`h-full w-full object-cover ${isUploadingImage ? 'blur-sm' : ''
+                    }`}
                   width={96}
                   height={96}
                 />
@@ -316,11 +328,10 @@ const AccountSettings = () => {
               ].map(({ field, label }) => (
                 <div
                   key={field}
-                  className={`flex justify-between items-center p-2 bg-white hover:bg-gray-100 cursor-pointer group ${
-                    fieldEditHistory[field]
-                      ? 'opacity-60 cursor-not-allowed'
-                      : ''
-                  }`}
+                  className={`flex justify-between items-center p-2 bg-white hover:bg-gray-100 cursor-pointer group ${fieldEditHistory[field]
+                    ? 'opacity-60 cursor-not-allowed'
+                    : ''
+                    }`}
                 >
                   <div className="flex flex-col">
                     <span className="font-bold text-gray-800 group-hover:text-[#0890A8] transition-colors">
@@ -402,15 +413,15 @@ const AccountSettings = () => {
         label={
           activeEditField
             ? activeEditField.charAt(0).toUpperCase() +
-              activeEditField.slice(1)
+            activeEditField.slice(1)
             : ''
         }
         type={
           activeEditField === 'email'
             ? 'email'
             : activeEditField === 'birthday'
-            ? 'date'
-            : 'text'
+              ? 'date'
+              : 'text'
         }
         initialValue={
           activeEditField

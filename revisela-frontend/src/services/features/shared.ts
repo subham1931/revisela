@@ -17,7 +17,10 @@ interface SharedFolder {
   _id: string;
   name: string;
   description?: string;
+  parentFolder?: string;
   owner: SharedOwner;
+  subFolders?: string[];
+  quizzes?: SharedQuiz[];
   userAccessLevel: 'member' | 'collaborator' | 'admin';
   isBookmarked: boolean;
   type: 'folder';
@@ -89,7 +92,9 @@ export const useSharedContent = () => {
         throw response.error;
       }
 
-      const sharedData = response.data?.data?.data;
+      const sharedData = (response.data?.data as any)?.data as
+        | SharedContentResponse['data']
+        | undefined;
 
       if (sharedData && typeof sharedData === 'object') {
         return sharedData;
@@ -139,8 +144,8 @@ export const useSharedQuizzes = () => {
       // { statusCode, timestamp, path, data: { success: true, data: SharedQuiz[], count, message } }
       // So response.data is the wrapper, response.data.data is the backend response object,
       // and response.data.data.data is the actual quizzes array
-      const quizzesArray = response.data?.data?.data;
-      return Array.isArray(quizzesArray) ? quizzesArray : [];
+      const quizzesArray = (response.data?.data as any)?.data;
+      return Array.isArray(quizzesArray) ? (quizzesArray as SharedQuiz[]) : [];
     },
   });
 };

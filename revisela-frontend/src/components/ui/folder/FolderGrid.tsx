@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { useUpdateFolder } from '@/services/features/folders';
 
@@ -45,7 +45,7 @@ const FolderGrid: React.FC<FolderGridProps> = ({
       { id, data: { name: newName } },
       {
         onSuccess: () => {
-          console.log('✅ Folder renamed:', newName);
+          // console.log('✅ Folder renamed:', newName);
           // Automatically invalidates and refetches via the hook’s onSuccess logic
         },
         onError: (error) => {
@@ -54,6 +54,7 @@ const FolderGrid: React.FC<FolderGridProps> = ({
       }
     );
   };
+
 
   // --- Render ---
   return (

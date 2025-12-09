@@ -119,46 +119,96 @@
 
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import React from 'react';
-
+import { useSearchParams, useRouter } from 'next/navigation';
 import { FolderExplorer, FolderProvider } from '@/components/ui/folder';
 import ContentSection from '@/components/ui/folder/ContentSection';
 import { QuizSetProvider } from '@/components/ui/quiz/QuizSetContext';
 import QuizSetExplorer from '@/components/ui/quiz/QuizSetExplorer';
-
 import { ROUTES } from '@/constants/routes';
+import { useState } from 'react';
+import CreateQuizForm from '@/app/dashboard/create-set/_components/CreateQuizForm';
 
 export default function LibraryPage() {
-  const searchParams = useSearchParams();
-  const initialFolderId = searchParams.get('folderId') || undefined;
+  const router = useRouter();
+  const params = useSearchParams();
+  const raw = params.get("folderId");
+  const folderId = raw && raw.trim() !== "" ? raw : undefined;
+  const isCreateMode = params.get("action") === "create-quiz";
 
-  const isRoot = !initialFolderId;
+  const [rootQuizCount, setRootQuizCount] = useState(0);
+  const [rootLoaded, setRootLoaded] = useState(false);
+
+  // Helper to exit create mode: simply remove params or go back
+  const handleExitCreate = () => {
+    if (folderId) {
+      router.push(`${ROUTES.DASHBOARD.LIBRARY}?folderId=${folderId}`);
+    } else {
+      router.push(ROUTES.DASHBOARD.LIBRARY);
+    }
+  };
+
+  if (isCreateMode) {
+    return (
+      <main className="container px-4 max-w-full">
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Create New Quiz Set
+          </h1>
+          <p className="text-gray-500 text-sm">
+            {folderId ? 'Adding to current folder' : 'Adding to library root'}
+          </p>
+        </div>
+        <CreateQuizForm
+          folderId={folderId}
+          onSuccess={handleExitCreate}
+          onCancel={handleExitCreate}
+        />
+      </main>
+    );
+  }
 
   return (
     <FolderProvider
-      initialFolderId={initialFolderId}
+      initialFolderId={folderId}
       rootName="My Library"
       rootPath={ROUTES.DASHBOARD.LIBRARY}
     >
       <FolderExplorer
         title="Folders"
-        renderContent={(currentFolderId, options) => {
+        renderContent={(currentFolderId) => {
+          // ========================
+          // ROOT MODE
+          // ========================
           if (!currentFolderId) {
             return (
               <section className="mt-8">
-                <QuizSetProvider folderId={null}>
-                  <QuizSetExplorer title="Quiz Sets" />
+
+                <QuizSetProvider folderId={undefined}>
+                  <QuizSetExplorer
+                    title="Quiz Sets"
+                    hideEmptyState     // <-- prevent built-in empty message
+                    parentRoute="dashboard/library"
+                    onDataLoaded={(count) => {
+                      setRootQuizCount(count);
+                      setRootLoaded(true);
+                    }}
+                  />
                 </QuizSetProvider>
+
+                {/* REAL EMPTY STATE (ONLY ONE) */}
+                {rootLoaded && rootQuizCount === 0 && (
+                  <div className=" flex flex-col items-center justify-center h-[60vh] text-center text-gray-600">
+                    You don't have any folders yet...
+                  </div>
+                )}
               </section>
             );
           }
-          return (
-            <ContentSection
-              currentFolderId={currentFolderId}
-              suppressQuizzes={!!options?.suppressQuizzes}
-            />
-          );
+
+          // ========================
+          // FOLDER MODE
+          // ========================
+          return <ContentSection currentFolderId={currentFolderId} parentRoute="dashboard/library" />;
         }}
       />
     </FolderProvider>

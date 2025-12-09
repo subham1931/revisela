@@ -25,7 +25,7 @@ const LayoutWrapper = ({ children }: Props) => {
       <div className="flex flex-1">
         {!isOnAuthPage && isOnDashboardPage ? (
           // This sidebar is w-64 (16rem) wide
-          <aside className="fixed top-[4.5rem] h-fit max-h-[calc(100vh-5rem-5rem)] w-52 bg-[#FAFAFA] overflow-y-auto hide-scrollbar">
+          <aside className="fixed top-[4.5rem] h-fit max-h-[calc(100vh-5rem-5rem)] w-54  bg-[#FAFAFA] overflow-y-auto hide-scrollbar">
             <Sidebar />
           </aside>
         ) : null}
@@ -36,7 +36,7 @@ const LayoutWrapper = ({ children }: Props) => {
             'relative flex-1 w-full',
             // CRITICAL FIX: Change ml-5 to ml-64
             // This pushes the content container to the right of the sidebar
-            !isOnAuthPage && isOnDashboardPage && 'ml-52' 
+            !isOnAuthPage && isOnDashboardPage && 'ml-55' 
           )}
         >
           {children}

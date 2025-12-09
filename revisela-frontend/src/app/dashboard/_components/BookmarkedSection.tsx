@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 import { ROUTES } from '@/constants/routes';
@@ -10,21 +10,21 @@ import { useBookmarkedQuizzes } from '@/services/features/quizzes';
 
 const BookmarkedSection: React.FC = () => {
   const { data: bookmarkedQuizzesResponse, isLoading } = useBookmarkedQuizzes();
-  // Backend returns: { statusCode, timestamp, path, data: { success, count, data: Quiz[] } }
-  // apiRequest unwraps to: response.data = { statusCode, timestamp, path, data: { success, count, data: Quiz[] } }
-  // So we need: response.data.data.data for the Quiz[] array
+
   const bookmarkedQuizzes = bookmarkedQuizzesResponse || [];
 
-  // Skip rendering if no bookmarks
-  if (!isLoading && bookmarkedQuizzes.length === 0) {
-    return null;
-  }
+  // Skip rendering entire section if no bookmarks
+  if (!isLoading && bookmarkedQuizzes.length === 0) return null;
+
+  const showViewAll = bookmarkedQuizzes.length > 3; // 👈 NEW LOGIC
 
   return (
     <section className="group">
       <div className="flex items-center justify-between mb-6">
+        
+        {/* Title */}
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold text-[#444444] transition-colors duration-200 group-hover:text-[#0890A8]">
+          <h2 className="text-3xl font-bold text-[#444444] transition-colors duration-200 group-hover:text-[#0890A8]">
             Bookmarked
           </h2>
           <ChevronRight
@@ -33,15 +33,19 @@ const BookmarkedSection: React.FC = () => {
           />
         </div>
 
-        <Link
-          href={ROUTES.DASHBOARD.BOOKMARKS}
-          className="flex items-center text-[#0890A8] hover:underline"
-        >
-          View all
-          <ChevronRight size={20} strokeWidth={2.5} />
-        </Link>
+        {/* View All (only if >3 bookmarks) */}
+        {showViewAll && (
+          <Link
+            href={ROUTES.DASHBOARD.BOOKMARKS}
+            className="flex items-center text-[#0890A8] hover:underline"
+          >
+            View all
+            <ChevronRight size={20} strokeWidth={2.5} />
+          </Link>
+        )}
       </div>
 
+      {/* Loader or grid */}
       {isLoading ? (
         <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm text-center">
           <p className="text-gray-500 text-sm">Loading bookmarked quizzes...</p>

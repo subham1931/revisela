@@ -7,17 +7,21 @@ import { ChevronRight } from 'lucide-react';
 
 import ChevronRightIcon from '@/components/icons/chevron-right';
 import QuizCard from '@/components/ui/quiz/QuizCard';
-import { usePublicQuizzes } from '@/services/features/quizzes';
+import { useRecentQuizzes } from '@/services/features/quizzes';
+import ROUTES from '@/constants/routes';
 
 const RecentSection = () => {
-  // Fetch public quizzes (recent/public quizzes)
-  const { data: publicQuizzesData, isLoading } = usePublicQuizzes(3, 0);
-  const recentQuizzes = publicQuizzesData?.results || [];
+  // Fetch recent quizzes (limit 3 for dashboard view)
+  const { data: recentQuizzesData, isLoading } = useRecentQuizzes(3, 0);
+  const recentQuizzes = recentQuizzesData?.results || [];
+  const totalCount = recentQuizzesData?.totalCount || 0;
 
   // Don't show section if no quizzes
   if (!isLoading && recentQuizzes.length === 0) {
     return null;
   }
+
+  const showViewAll = totalCount > 3;
 
   return (
     <section className='group'>
@@ -26,12 +30,15 @@ const RecentSection = () => {
           <h2 className="text-3xl font-bold text-[#444444] transition-colors duration-200 group-hover:text-[#0890A8]">Recent</h2>
           <ChevronRight className="w-5 h-5 text-[#444444] transition-colors duration-200 group-hover:text-[#0890A8]" />
         </div>
-        {/* <Link
-          href="/dashboard/recent"
-          className="flex items-center text-[#0890A8]"
-        >
-          View all <ChevronRight size={20} />
-        </Link> */}
+        {showViewAll && (
+          <Link
+            href={ROUTES.DASHBOARD.RECENT}
+            className="flex items-center text-[#0890A8] cursor-pointer"
+          >
+            View all
+            <ChevronRight size={20} strokeWidth={2.5} />
+          </Link>
+        )}
       </div>
 
       {isLoading ? (
@@ -49,14 +56,14 @@ const RecentSection = () => {
               tags={quiz.tags || []}
               rating={0}
               user={{
-                name: typeof quiz.createdBy === 'object' 
+                name: typeof quiz.createdBy === 'object'
                   ? quiz.createdBy?.name || 'Unknown'
                   : 'Unknown',
-                profileImage: typeof quiz.createdBy === 'object' 
-                  ? quiz.createdBy?.profileImage 
+                profileImage: typeof quiz.createdBy === 'object'
+                  ? quiz.createdBy?.profileImage
                   : undefined,
               }}
-              parentRoute="dashboard"
+              parentRoute="dashboard/recent"
               isBookmarked={!!quiz.isBookmarked}
             />
           ))}

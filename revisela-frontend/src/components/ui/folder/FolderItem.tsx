@@ -1,16 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   Bookmark,
   Copy,
   FolderClosed,
+  FolderOpen,
   FolderSymlink,
   History,
   LockKeyholeOpen,
   Pencil,
   Trash2,
+  Users,
 } from 'lucide-react';
 
 import {
@@ -44,6 +46,7 @@ export interface FolderItemProps {
   isInTrash?: boolean;
   handleDeleteInParent?: boolean;
   isBookmarked?: boolean;
+  isShared?: boolean; // ✅ indicates if folder is shared with others
 }
 
 const FolderItem: React.FC<FolderItemProps> = ({
@@ -60,6 +63,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
   isInTrash = false,
   handleDeleteInParent = false,
   isBookmarked = false,
+  isShared = false,
 }) => {
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
@@ -72,7 +76,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
   const bookmarkFolder = useBookmarkFolder();
   const permanentlyDeleteFolder = usePermanentlyDeleteFolder();
   const currentUser = useAppSelector(selectUser);
-  
+
   // Fetch folder data when manage access modal opens
   const { data: folderData } = useFolderDetails(
     manageAccessModalOpen ? id : undefined,
@@ -136,12 +140,50 @@ const FolderItem: React.FC<FolderItemProps> = ({
 
   const dropdownItems = isInTrash
     ? [
+      {
+        label: 'Restore',
+        icon: <History size={16} />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onRestore?.(id);
+        },
+      },
+      {
+        label: 'Delete',
+        icon: <Trash2 size={16} />,
+        className: 'text-red-500 font-medium',
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setRemoveModalOpen(true);
+        },
+      },
+    ]
+    : isShared
+      ? [
         {
-          label: 'Restore',
-          icon: <History size={16} />,
+          label: 'Duplicate',
+          icon: <Copy size={16} />,
           onClick: (e: React.MouseEvent) => {
             e.stopPropagation();
-            onRestore?.(id);
+            setDuplicateModalOpen(true);
+          },
+        },
+        {
+          label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
+          icon: (
+            <Bookmark
+              size={16}
+              className={isBookmarked ? 'fill-[#444444] text-[#444444]' : ''}
+            />
+          ),
+          onClick: handleBookmark,
+        },
+        {
+          label: 'Move',
+          icon: <FolderOpen size={16} />,
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onMove?.(id);
           },
         },
         {
@@ -154,7 +196,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
           },
         },
       ]
-    : [
+      : [
         {
           label: 'Rename',
           icon: <Pencil size={16} />,
@@ -219,9 +261,6 @@ const FolderItem: React.FC<FolderItemProps> = ({
         },
       ];
 
-  /* -------------------------------------------------------------
-     Component render
-  ------------------------------------------------------------- */
 
   return (
     <>
@@ -241,6 +280,14 @@ const FolderItem: React.FC<FolderItemProps> = ({
             <Bookmark
               size={18}
               className="text-[#444444] fill-[#444444]"
+              strokeWidth={1.5}
+            />
+          )}
+
+          {!isInTrash && isShared && (
+            <Users
+              size={18}
+              className="text-[#444444]"
               strokeWidth={1.5}
             />
           )}
@@ -317,7 +364,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
         onConfirm={handleRemove}
         isLoading={isLoading}
       />
-      
+
       {/* Manage Access Modal */}
       {folderData && currentUser && (
         <FolderManageAccessModal
@@ -325,17 +372,17 @@ const FolderItem: React.FC<FolderItemProps> = ({
           onOpenChange={setManageAccessModalOpen}
           folderId={id}
           owner={{
-            _id: typeof folderData.owner === 'string' 
-              ? folderData.owner 
+            _id: typeof folderData.owner === 'string'
+              ? folderData.owner
               : (folderData.owner as any)?._id || '',
-            name: typeof folderData.owner === 'object' 
-              ? (folderData.owner as any)?.name || 'Unknown' 
+            name: typeof folderData.owner === 'object'
+              ? (folderData.owner as any)?.name || 'Unknown'
               : 'Unknown',
-            email: typeof folderData.owner === 'object' 
-              ? (folderData.owner as any)?.email || '' 
+            email: typeof folderData.owner === 'object'
+              ? (folderData.owner as any)?.email || ''
               : '',
-            avatar: typeof folderData.owner === 'object' 
-              ? (folderData.owner as any)?.profileImage 
+            avatar: typeof folderData.owner === 'object'
+              ? (folderData.owner as any)?.profileImage
               : undefined,
           }}
           members={
@@ -384,17 +431,17 @@ const FolderItem: React.FC<FolderItemProps> = ({
               ? folderData.owner === currentUser.id || folderData.owner === currentUser._id
                 ? 'owner'
                 : folderData.sharedWith?.some((share: any) => {
-                    const userId = typeof share.user === 'string' ? share.user : share.user?._id;
-                    return userId === currentUser.id || userId === currentUser._id;
-                  })
-                ? (folderData.sharedWith?.find((share: any) => {
+                  const userId = typeof share.user === 'string' ? share.user : share.user?._id;
+                  return userId === currentUser.id || userId === currentUser._id;
+                })
+                  ? (folderData.sharedWith?.find((share: any) => {
                     const userId = typeof share.user === 'string' ? share.user : share.user?._id;
                     return userId === currentUser.id || userId === currentUser._id;
                   })?.accessLevel === 'admin' ? 'admin' : 'collaborator')
-                : 'none'
+                  : 'none'
               : (folderData.owner as any)?._id === currentUser.id || (folderData.owner as any)?._id === currentUser._id
-              ? 'owner'
-              : 'none'
+                ? 'owner'
+                : 'none'
           }
         />
       )}

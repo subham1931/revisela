@@ -13,22 +13,12 @@ interface RenderContentOptions {
 
 interface FolderExplorerProps {
   title?: string;
-  allowCreateFolder?: boolean;
-  onFolderClick?: (id: string, name: string) => void;
-  // renderContent now optionally receives options object from FolderExplorer
-  renderContent?: (
-    currentFolderId: string | undefined,
-    options?: RenderContentOptions
-  ) => React.ReactNode;
-  className?: string;
+  renderContent?: (currentFolderId?: string, options?: RenderContentOptions) => React.ReactNode;
 }
 
 const FolderExplorer: React.FC<FolderExplorerProps> = ({
   title = 'Folders',
-  allowCreateFolder = true,
-  onFolderClick,
   renderContent,
-  className = '',
 }) => {
   const {
     currentFolderId,
@@ -44,37 +34,28 @@ const FolderExplorer: React.FC<FolderExplorerProps> = ({
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
 
   const handleFolderClick = (folderId: string, folderName: string) => {
-    navigateToFolder(folderId, folderName);
-    onFolderClick?.(folderId, folderName);
+    const safeId = folderId && folderId.trim() !== '' ? folderId : undefined;
+    navigateToFolder(safeId, folderName);
   };
 
-  const formattedBreadcrumbs = breadcrumbs.map((item, index) => ({
+  const formattedBreadcrumbs = breadcrumbs.map((item, i) => ({
     label: item.name,
-    isCurrent: index === breadcrumbs.length - 1,
-    onClick: () => navigateToFolder(item.id || undefined, item.name),
+    isCurrent: i === breadcrumbs.length - 1,
+    onClick: () => navigateToFolder(item.id, item.name),
   }));
 
-  // Decide which folder list to show (root shows top-level folders)
-  const displayFolders = currentFolderId ? subFolders : folders;
-  const isLoadingFolders = currentFolderId ? folderDetailsLoading : isLoading;
+  const displayFolders = currentFolderId !== undefined ? subFolders : folders;
+  const isLoadingFolders = currentFolderId !== undefined ? folderDetailsLoading : isLoading;
 
-  // If there are folders inside the current folder -> we likely want to show folders and (optionally) suppress quizzes.
-  const hasSubFolders = displayFolders && displayFolders.length > 0;
-
-  // We will pass suppressQuizzes to renderContent so the content renderer can avoid showing quizzes when subfolders exist.
+  const hasSubFolders = displayFolders?.length > 0;
   const renderOptions = { suppressQuizzes: hasSubFolders };
 
   return (
-    <div className={className}>
+    <div>
       <div className="flex items-center justify-between mb-8">
         <Breadcrumb items={formattedBreadcrumbs} />
       </div>
 
-      {currentFolder?.description && (
-        <p className="text-gray-500 mt-1 mb-4">{currentFolder.description}</p>
-      )}
-
-      {/* Only render folder grid when folders exist */}
       {displayFolders.length > 0 && (
         <section className="mb-8">
           <h2 className="text-xl font-medium text-[#444444] mb-4">{title}</h2>
@@ -83,13 +64,12 @@ const FolderExplorer: React.FC<FolderExplorerProps> = ({
             isLoading={isLoadingFolders}
             onFolderClick={handleFolderClick}
             emptyMessage={
-              currentFolderId ? 'This folder is empty' : "You don't have any folders yet"
+              currentFolderId !== undefined ? 'This folder is empty' : "You don't have any folders yet"
             }
           />
         </section>
       )}
 
-      {/* Render content, but inform it whether we have subfolders (suppressQuizzes) */}
       {renderContent?.(currentFolderId, renderOptions)}
 
       <CreateFolderModal

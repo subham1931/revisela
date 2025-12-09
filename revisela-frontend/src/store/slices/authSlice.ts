@@ -26,6 +26,7 @@ export const getProfileImageFromStorage = (): string => {
 
 interface User {
   id: string;
+  _id?: string;
   name: string;
   email: string;
   username?: string;

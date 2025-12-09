@@ -20,6 +20,13 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
   const { quizzes, isLoading } = useQuizSets();
   // console.log(quizzes?._isBookmarked);
 
+  // Don't show section if no quizzes
+  if (!isLoading && (!quizzes || quizzes.length === 0)) {
+    return null;
+  }
+
+  const showViewAll = quizzes.length > 3;
+
   return (
     <section className="group">
       {/* Header */}
@@ -35,12 +42,15 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
         </Link>
 
         {/* Optional “View all” link */}
-        {/* <Link
-          href={ROUTES.DASHBOARD.LIBRARY}
-          className="flex items-center text-[#0890A8] cursor-pointer"
-        >
-          View all
-        </Link> */}
+        {showViewAll && (
+          <Link
+            href={ROUTES.DASHBOARD.LIBRARY}
+            className="flex items-center text-[#0890A8] cursor-pointer"
+          >
+            View all
+            <ChevronRight size={20} strokeWidth={2.5} />
+          </Link>
+        )}
       </div>
 
       {/* Content */}

@@ -1,22 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext } from 'react';
 import {
+  useQuizzes,
   useCreateQuiz,
   useUpdateQuiz,
   useDeleteQuiz,
-  useQuizzes,
-  useBookmarkedQuizzes,
 } from '@/services/features/quizzes';
 
 interface QuizSet {
   _id: string;
   title: string;
-  description?: string;
-  tags?: string[];
-  folderId?: string | null;
-  isBookmarked?: boolean;
-  [key: string]: any;
+  folderId?: string;
 }
 
 interface QuizSetContextProps {
@@ -30,59 +25,52 @@ interface QuizSetContextProps {
 
 const QuizSetContext = createContext<QuizSetContextProps | undefined>(undefined);
 
-interface QuizSetProviderProps {
-  children: React.ReactNode;
-  folderId?: string | null;   // ✅ UPDATED TYPE
-}
-
-export const QuizSetProvider: React.FC<QuizSetProviderProps> = ({
+export const QuizSetProvider = ({
   children,
   folderId,
+}: {
+  children: React.ReactNode;
+  folderId?: string;
 }) => {
-  const { data: quizzes = [], isLoading, refetch } = useQuizzes(folderId);
-  const { data: bookmarkedData } = useBookmarkedQuizzes();
+  // If folderId is empty string → treat as undefined
+  const safeFolderId = folderId && folderId.trim() !== '' ? folderId : undefined;
 
-  const bookmarkedIds = useMemo(() => {
-    const list = bookmarkedData?.data?.data || bookmarkedData?.data || [];
-    return new Set(list.map((q: any) => q._id));
-  }, [bookmarkedData]);
-
-  const enrichedQuizzes = useMemo(
-    () =>
-      quizzes.map((quiz: any) => ({
-        ...quiz,
-        isBookmarked: bookmarkedIds.has(quiz._id),
-      })),
-    [quizzes, bookmarkedIds]
-  );
+  // ONE SINGLE QUERY handles both folder & root
+  const {
+    data: quizzes = [],
+    isLoading,
+    refetch,
+  } = useQuizzes(safeFolderId);
 
   const createQuizMutation = useCreateQuiz();
   const updateQuizMutation = useUpdateQuiz();
   const deleteQuizMutation = useDeleteQuiz();
 
-  const refresh = refetch;
-
   const createQuiz = async (data: Partial<QuizSet>) => {
-    await createQuizMutation.mutateAsync(data);
-    refresh();
+    const payload = { ...data };
+    if (safeFolderId) {
+      payload.folderId = safeFolderId;
+    }
+    await createQuizMutation.mutateAsync(payload);
+    refetch();
   };
 
   const updateQuiz = async (id: string, data: Partial<QuizSet>) => {
     await updateQuizMutation.mutateAsync({ quizId: id, data });
-    refresh();
+    refetch();
   };
 
   const deleteQuiz = async (id: string) => {
     await deleteQuizMutation.mutateAsync(id);
-    refresh();
+    refetch();
   };
 
   return (
     <QuizSetContext.Provider
       value={{
-        quizzes: enrichedQuizzes,
+        quizzes,
         isLoading,
-        refresh,
+        refresh: refetch,
         createQuiz,
         updateQuiz,
         deleteQuiz,
@@ -94,9 +82,7 @@ export const QuizSetProvider: React.FC<QuizSetProviderProps> = ({
 };
 
 export const useQuizSets = () => {
-  const context = useContext(QuizSetContext);
-  if (!context) {
-    throw new Error('useQuizSets must be used inside a QuizSetProvider');
-  }
-  return context;
+  const ctx = useContext(QuizSetContext);
+  if (!ctx) throw new Error('useQuizSets must be used inside QuizSetProvider');
+  return ctx;
 };

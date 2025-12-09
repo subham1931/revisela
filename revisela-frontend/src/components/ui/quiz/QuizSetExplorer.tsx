@@ -11,13 +11,17 @@ interface QuizSetExplorerProps {
   title?: string;
   allowCreateQuiz?: boolean;
   onQuizClick?: (id: string, title: string) => void;
-  onDataLoaded?: (count: number) => void;       // ⭐ added
+  onDataLoaded?: (count: number) => void;
+  hideEmptyState?: boolean;   // ⭐ NEW
+  parentRoute?: string;
 }
 
 const QuizSetExplorer: React.FC<QuizSetExplorerProps> = ({
   title = 'Quiz Sets',
   onQuizClick,
   onDataLoaded,
+  hideEmptyState = false,     // ⭐ NEW DEFAULT
+  parentRoute,
 }) => {
   const { quizzes, isLoading, deleteQuiz } = useQuizSets();
   const router = useRouter();
@@ -30,32 +34,45 @@ const QuizSetExplorer: React.FC<QuizSetExplorerProps> = ({
     [onQuizClick, router]
   );
 
+  // Notify parent about loaded data
   useEffect(() => {
     if (!isLoading && onDataLoaded) {
       onDataLoaded(quizzes.length);
     }
+    // console.log("quizzes",quizzes);
+
   }, [isLoading, quizzes.length, onDataLoaded]);
 
+  if (isLoading) {
+    return (
+      <GridSkeletonLoader type="quiz" count={6} columns={3} />
+    );
+  }
+
+  // No quizzes case
+  if (quizzes.length === 0) {
+    if (hideEmptyState) return null;
+    return (
+      <div className="text-center py-4 text-gray-500">
+        You don't have any quiz sets yet
+      </div>
+    );
+  }
+
+  // Normal render
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-xl font-medium text-[#444444]">{title}</h2>
       </div>
 
-      {isLoading ? (
-        <GridSkeletonLoader type="quiz" count={6} columns={3} />
-      ) : quizzes.length > 0 ? (
-        <QuizGrid
-          quizzes={quizzes}
-          isLoading={false}
-          onQuizClick={handleQuizClick}
-          onQuizDelete={deleteQuiz}
-        />
-      ) : (
-        <div className="text-center py-4 text-gray-500">
-          You don't have any quiz sets yet
-        </div>
-      )}
+      <QuizGrid
+        quizzes={quizzes}
+        isLoading={false}
+        onQuizClick={handleQuizClick}
+        onQuizDelete={deleteQuiz}
+        parentRoute={parentRoute}
+      />
     </div>
   );
 };

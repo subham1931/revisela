@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
 import {
   useFolders as useApiFolder,
@@ -11,20 +12,20 @@ import {
 } from '@/services/features/folders';
 
 export interface BreadcrumbItem {
-  id: string;
+  id?: string;
   name: string;
   path: string;
 }
 
 interface FolderContextProps {
-  currentFolderId: string | undefined;
+  currentFolderId?: string;
   folders: any[];
   subFolders: any[];
   currentFolder: any | null;
   isLoading: boolean;
   folderDetailsLoading: boolean;
   breadcrumbs: BreadcrumbItem[];
-  navigateToFolder: (id: string | undefined, name?: string) => void;
+  navigateToFolder: (id?: string, name?: string) => void;
   navigateUp: () => void;
   createFolder: (name: string, desc?: string) => Promise<any>;
   updateFolder: (id: string, name: string) => Promise<any>;
@@ -46,14 +47,35 @@ export const FolderProvider = ({
   rootName: string;
   rootPath: string;
 }) => {
-  const [currentFolderId, setCurrentFolderId] = useState(initialFolderId);
-  const [folderHistory, setFolderHistory] = useState<
-    { id: string; name: string }[]
-  >(initialFolderId ? [{ id: initialFolderId, name: '' }] : []);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const safeInitial =
+    initialFolderId && initialFolderId.trim() !== '' ? initialFolderId : undefined;
+
+  const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(safeInitial);
+  const [folderHistory, setFolderHistory] = useState<{ id: string; name: string }[]>(
+    safeInitial ? [{ id: safeInitial, name: '' }] : []
+  );
+
+  // Sync state with URL changes (handle back/forward button)
+  useEffect(() => {
+    const paramId = searchParams.get('folderId');
+    const newId = paramId || undefined;
+    if (newId !== currentFolderId) {
+      setCurrentFolderId(newId);
+      // Note: complex history sync might be needed here, but basic ID sync is crucial
+    }
+  }, [searchParams]);
 
   const { data: folders, isLoading } = useApiFolder(undefined);
+  // useEffect(()=>{
+  //   console.log(folders)
+  // },[folders])
+
   const { data: currentFolder, isLoading: folderDetailsLoading } =
-    useFolderDetails(currentFolderId, !!currentFolderId);
+    useFolderDetails(currentFolderId, currentFolderId !== undefined);
 
   const subFolders = currentFolder?.subFolders || [];
 
@@ -61,23 +83,37 @@ export const FolderProvider = ({
   const updateFolderMut = useUpdateFolder();
   const deleteFolderMut = useDeleteFolder();
 
-  const navigateToFolder = useCallback((id, name) => {
-    setCurrentFolderId(id);
+  const navigateToFolder = useCallback((id?: string, name?: string) => {
+    const safeId = id && id.trim() !== '' ? id : undefined;
 
-    if (id && name) {
-      setFolderHistory((prev) => {
-        const idx = prev.findIndex((f) => f.id === id);
-        if (idx >= 0) return prev.slice(0, idx + 1);
-        return [...prev, { id, name }];
-      });
+    setCurrentFolderId(safeId);
+
+    // Update URL
+    if (safeId) {
+      router.push(`${rootPath}?folderId=${safeId}`);
     } else {
-      setFolderHistory([]);
+      router.push(rootPath);
     }
-  }, []);
+
+    if (!safeId) {
+      setFolderHistory([]);
+      return;
+    }
+
+    setFolderHistory((prev) => {
+      // Avoid duplicate history entries if clicking same folder
+      if (prev.length > 0 && prev[prev.length - 1].id === safeId) return prev;
+
+      const idx = prev.findIndex((f) => f.id === safeId);
+      if (idx >= 0) return prev.slice(0, idx + 1);
+      return [...prev, { id: safeId, name: name ?? '' }];
+    });
+  }, [rootPath, router]);
 
   const navigateUp = useCallback(() => {
     if (folderHistory.length === 0) {
       setCurrentFolderId(undefined);
+      router.push(rootPath);
       return;
     }
 
@@ -86,13 +122,16 @@ export const FolderProvider = ({
 
     if (newHist.length === 0) {
       setCurrentFolderId(undefined);
+      router.push(rootPath);
     } else {
-      setCurrentFolderId(newHist[newHist.length - 1].id);
+      const parentId = newHist[newHist.length - 1].id;
+      setCurrentFolderId(parentId);
+      router.push(`${rootPath}?folderId=${parentId}`);
     }
-  }, [folderHistory]);
+  }, [folderHistory, rootPath, router]);
 
   const breadcrumbs: BreadcrumbItem[] = [
-    { id: '', name: rootName, path: rootPath },
+    { id: undefined, name: rootName, path: rootPath },
     ...folderHistory.map((f) => ({
       id: f.id,
       name: f.name,
@@ -104,7 +143,7 @@ export const FolderProvider = ({
     <FolderContext.Provider
       value={{
         currentFolderId,
-        folders: currentFolderId ? [] : folders || [],
+        folders: currentFolderId !== undefined ? [] : folders || [],
         subFolders,
         currentFolder: currentFolder || null,
         isLoading,

@@ -13,6 +13,7 @@ import {
   Merge,
   Pencil,
   Trash2,
+  Users,
 } from 'lucide-react';
 
 import {
@@ -40,8 +41,9 @@ export interface QuizCardProps {
   };
   isBookmarked?: boolean;
   isInTrash?: boolean;
-  isClass?: boolean; // NEW PROP
-  parentRoute?: string; // new prop to handle dynamic routes
+  isClass?: boolean;
+  isShared?: boolean;
+  parentRoute?: string;
   onDelete?: (id: string) => void;
   onRestore?: (id: string) => void;
   onManageAccess?: (id: string) => void;
@@ -56,7 +58,8 @@ const QuizCard: React.FC<QuizCardProps> = ({
   user,
   isBookmarked = false,
   isInTrash = false,
-  isClass = false, // default false
+  isClass = false,
+  isShared = false,
   parentRoute = 'dashboard',
   onDelete,
   onRestore,
@@ -70,8 +73,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
   const router = useRouter();
   const bookmarkQuiz = useBookmarkQuiz();
   const currentUser = useAppSelector(selectUser);
-  
-  // Fetch quiz data when manage access modal opens
+
   const { data: quizData } = useQuiz(manageAccessModalOpen ? id : undefined);
 
   const handleRemove = () => {
@@ -86,19 +88,100 @@ const QuizCard: React.FC<QuizCardProps> = ({
     bookmarkQuiz.mutate({ quizId: id, bookmarked: !isBookmarked });
   };
 
-  // Dropdown items
   const dropdownItems = isInTrash
     ? [
+      {
+        label: 'Restore',
+        icon: <History size={16} />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onRestore?.(id);
+        },
+      },
+      {
+        label: 'Delete Permanently',
+        icon: <Trash2 size={16} />,
+        className: 'text-red-500 font-medium',
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setRemoveModalOpen(true);
+        },
+      },
+    ]
+    : isClass
+      ? [
         {
-          label: 'Restore',
-          icon: <History size={16} />,
+          label: 'Duplicate',
+          icon: <Copy size={16} />,
           onClick: (e: React.MouseEvent) => {
             e.stopPropagation();
-            onRestore?.(id);
+            setDuplicateModalOpen(true);
           },
         },
         {
-          label: 'Delete Permanently',
+          label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
+          icon: (
+            <Bookmark
+              size={16}
+              className={isBookmarked ? 'fill-[#0890A8] text-[#0890A8]' : ''}
+            />
+          ),
+          onClick: handleBookmark,
+        },
+      ]
+      : [
+        {
+          label: 'Edit',
+          icon: <Pencil size={16} />,
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            router.push(`/dashboard/${id}/edit`);
+          },
+        },
+        {
+          label: 'Duplicate',
+          icon: <Copy size={16} />,
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            setDuplicateModalOpen(true);
+          },
+        },
+        {
+          label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
+          icon: (
+            <Bookmark
+              size={16}
+              className={isBookmarked ? 'fill-[#0890A8] text-[#0890A8]' : ''}
+            />
+          ),
+          onClick: handleBookmark,
+        },
+        {
+          label: 'Manage Access',
+          icon: <LockKeyholeOpen size={16} />,
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onManageAccess?.(id) ?? setManageAccessModalOpen(true);
+          },
+        },
+        {
+          label: 'Move',
+          icon: <FolderSymlink size={16} />,
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            setMoveModalOpen(true);
+          },
+        },
+        {
+          label: 'Merge',
+          icon: <Merge size={16} />,
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            setMoveModalOpen(true);
+          },
+        },
+        {
+          label: 'Delete',
           icon: <Trash2 size={16} />,
           className: 'text-red-500 font-medium',
           onClick: (e: React.MouseEvent) => {
@@ -106,93 +189,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
             setRemoveModalOpen(true);
           },
         },
-      ]
-    : isClass
-      ? [
-          {
-            label: 'Duplicate',
-            icon: <Copy size={16} />,
-            onClick: (e: React.MouseEvent) => {
-              e.stopPropagation();
-              setDuplicateModalOpen(true);
-            },
-          },
-          {
-            label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
-            icon: (
-              <Bookmark
-                size={16}
-                className={isBookmarked ? 'fill-[#0890A8] text-[#0890A8]' : ''}
-              />
-            ),
-            onClick: handleBookmark,
-          },
-        ]
-      : [
-          {
-            label: 'Edit',
-            icon: <Pencil size={16} />,
-            onClick: (e: React.MouseEvent) => {
-              e.stopPropagation();
-              router.push(`/dashboard/quizzes/${id}/edit`);
-            },
-          },
-          {
-            label: 'Duplicate',
-            icon: <Copy size={16} />,
-            onClick: (e: React.MouseEvent) => {
-              e.stopPropagation();
-              setDuplicateModalOpen(true);
-            },
-          },
-          {
-            label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
-            icon: (
-              <Bookmark
-                size={16}
-                className={isBookmarked ? 'fill-[#0890A8] text-[#0890A8]' : ''}
-              />
-            ),
-            onClick: handleBookmark,
-          },
-          {
-            label: 'Manage Access',
-            icon: <LockKeyholeOpen size={16} />,
-            onClick: (e: React.MouseEvent) => {
-              e.stopPropagation();
-              if (onManageAccess) {
-                onManageAccess(id);
-              } else {
-                setManageAccessModalOpen(true);
-              }
-            },
-          },
-          {
-            label: 'Move',
-            icon: <FolderSymlink size={16} />,
-            onClick: (e: React.MouseEvent) => {
-              e.stopPropagation();
-              setMoveModalOpen(true);
-            },
-          },
-          {
-            label: 'Merge',
-            icon: <Merge size={16} />,
-            onClick: (e: React.MouseEvent) => {
-              e.stopPropagation();
-              setMoveModalOpen(true);
-            },
-          },
-          {
-            label: 'Delete',
-            icon: <Trash2 size={16} />,
-            className: 'text-red-500 font-medium',
-            onClick: (e: React.MouseEvent) => {
-              e.stopPropagation();
-              setRemoveModalOpen(true);
-            },
-          },
-        ];
+      ];
 
   const handleCardClick = () => {
     if (!id) return;
@@ -207,13 +204,12 @@ const QuizCard: React.FC<QuizCardProps> = ({
         className="p-4 border-2 border-[#ACACAC] rounded-lg bg-white hover:border-[#0890A8] cursor-pointer flex flex-col gap-2"
         onClick={handleCardClick}
       >
+        {/* Title + actions */}
         <div className="flex items-start justify-between">
           <span className="font-semibold text-[#444444]">{title}</span>
 
           <div
             className="flex items-center gap-2"
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
             {!isInTrash && isBookmarked && (
@@ -223,58 +219,80 @@ const QuizCard: React.FC<QuizCardProps> = ({
                 strokeWidth={1.5}
               />
             )}
+
+            {!isInTrash && isShared && (
+              <Users
+                size={18}
+                className="text-[#444444]"
+                strokeWidth={1.5}
+              />
+            )}
+
             <ActionDropdown items={dropdownItems} />
           </div>
         </div>
 
+        {/* Description */}
         <p className="text-sm text-gray-500 h-15 max-h-15">{description}</p>
 
+        {/* Tags */}
         <div className="flex gap-2 flex-wrap mt-2 text-xs items-center">
           <p>Tags :</p>
-          {(tags && tags.length > 0 ? tags : ['General', 'Sample', 'Quiz']).map(
-            (tag) => (
-              <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                {tag}
+          {(tags.length ? tags : ['General', 'Sample', 'Quiz']).map((tag) => (
+            <span
+              key={tag}
+              className="text-xs bg-gray-100 px-2 py-1 rounded"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* User + rating */}
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center gap-2">
+            <Image
+              src={user?.profileImage || defaultuser}
+              alt={user?.name || 'You'}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+
+            <div className="flex flex-col">
+              <span className="text-sm text-gray-700">
+                {user?.name || 'You'}
               </span>
-            )
+              <span className="text-xs text-gray-700">Not Shared</span>
+            </div>
+          </div>
+
+          {rating > 0 && (
+            <div className="flex">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <span key={i} className="text-yellow-400">
+                  {i < rating ? '★' : '☆'}
+                </span>
+              ))}
+            </div>
           )}
         </div>
-
-        <div className="flex items-center gap-2 mt-2">
-          <Image
-            src={user?.profileImage || defaultuser}
-            alt={user?.name || 'You'}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-700">{user?.name || 'You'}</span>
-            <span className="text-xs text-gray-700">Not Shared</span>
-          </div>
-        </div>
-
-        {rating > 0 && (
-          <div className="flex mt-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <span key={i} className="text-yellow-400">
-                {i < rating ? '★' : '☆'}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Modals */}
 
       <DuplicateQuizModal
         isOpen={duplicateModalOpen}
         onOpenChange={setDuplicateModalOpen}
-        quizId={id || ''}
+        quizId={id}
         quizTitle={title}
       />
+
       <MoveQuizModal
         isOpen={moveModalOpen}
         onOpenChange={setMoveModalOpen}
-        quizId={id || ''}
+        quizId={id}
         quizTitle={title}
       />
+
       <ConfirmationModal
         isOpen={removeModalOpen}
         onOpenChange={setRemoveModalOpen}
@@ -296,85 +314,65 @@ const QuizCard: React.FC<QuizCardProps> = ({
         }
         onConfirm={handleRemove}
       />
-      
-      {/* Manage Access Modal */}
+
       {quizData && currentUser && (
         <QuizManageAccessModal
           isOpen={manageAccessModalOpen}
           onOpenChange={setManageAccessModalOpen}
           quizId={id}
           owner={{
-            _id: typeof quizData.createdBy === 'string' 
-              ? quizData.createdBy 
-              : (quizData.createdBy as any)?._id || '',
-            name: typeof quizData.createdBy === 'object' 
-              ? (quizData.createdBy as any)?.name || 'Unknown' 
-              : 'Unknown',
-            email: typeof quizData.createdBy === 'object' 
-              ? (quizData.createdBy as any)?.email || '' 
-              : '',
-            avatar: typeof quizData.createdBy === 'object' 
-              ? (quizData.createdBy as any)?.profileImage 
-              : undefined,
+            _id:
+              typeof quizData.createdBy === 'string'
+                ? quizData.createdBy
+                : quizData.createdBy?._id || '',
+            name:
+              typeof quizData.createdBy === 'object'
+                ? quizData.createdBy?.name || 'Unknown'
+                : 'Unknown',
+            email:
+              typeof quizData.createdBy === 'object'
+                ? quizData.createdBy?.email || ''
+                : '',
+            avatar:
+              typeof quizData.createdBy === 'object'
+                ? quizData.createdBy?.profileImage
+                : undefined,
           }}
-          members={
-            (quizData.sharedWith || []).map((share: any) => {
-              // Handle member ID: can be string, populated object with _id, or ObjectId object
-              let memberId = '';
-              let userName = 'Unknown';
-              let userEmail = '';
-              let userAvatar: string | undefined = undefined;
+          members={(quizData.sharedWith || []).map((share: any) => {
+            let id = '';
+            let name = 'Unknown';
+            let email = '';
+            let avatar;
 
-              if (typeof share.user === 'string') {
-                memberId = share.user;
-              } else if (share.user?._id) {
-                // Populated user object
-                memberId = share.user._id.toString();
-                userName = share.user.name || 'Unknown';
-                userEmail = share.user.email || '';
-                userAvatar = share.user.profileImage;
-              } else if (share.user && typeof share.user === 'object') {
-                // Could be ObjectId or populated object - check if it has name property
-                if (share.user.name) {
-                  // Populated user object
-                  memberId = share.user._id?.toString() || share.user.toString();
-                  userName = share.user.name || 'Unknown';
-                  userEmail = share.user.email || '';
-                  userAvatar = share.user.profileImage;
-                } else {
-                  // Likely an ObjectId object
-                  memberId = share.user.toString();
-                }
-              }
+            if (typeof share.user === 'string') id = share.user;
+            else if (share.user?._id) {
+              id = share.user._id;
+              name = share.user.name;
+              email = share.user.email;
+              avatar = share.user.profileImage;
+            } else if (share.user?.name) {
+              id = share.user._id || '';
+              name = share.user.name;
+              email = share.user.email;
+              avatar = share.user.profileImage;
+            } else id = share.user?.toString();
 
-              return {
-                _id: memberId,
-                name: userName,
-                email: userEmail,
-                avatar: userAvatar,
-                role: share.accessLevel === 'admin' ? 'collaborator' as const : (share.accessLevel || 'member') as 'collaborator' | 'member',
-              };
-            })
-          }
+            return {
+              _id: id,
+              name,
+              email,
+              avatar,
+              role:
+                share.accessLevel === 'admin'
+                  ? 'collaborator'
+                  : share.accessLevel || 'member',
+            };
+          })}
           currentUserId={currentUser.id || currentUser._id || ''}
-          publicAccess={quizData.publicAccess === 'public' ? 'public' : 'restricted'}
-          userAccessLevel={
-            typeof quizData.createdBy === 'string'
-              ? quizData.createdBy === currentUser.id || quizData.createdBy === currentUser._id
-                ? 'owner'
-                : quizData.sharedWith?.some((share: any) => {
-                    const userId = typeof share.user === 'string' ? share.user : share.user?._id;
-                    return userId === currentUser.id || userId === currentUser._id;
-                  })
-                ? (quizData.sharedWith?.find((share: any) => {
-                    const userId = typeof share.user === 'string' ? share.user : share.user?._id;
-                    return userId === currentUser.id || userId === currentUser._id;
-                  })?.accessLevel === 'admin' ? 'admin' : 'collaborator')
-                : 'none'
-              : (quizData.createdBy as any)?._id === currentUser.id || (quizData.createdBy as any)?._id === currentUser._id
-              ? 'owner'
-              : 'none'
+          publicAccess={
+            quizData.publicAccess === 'public' ? 'public' : 'restricted'
           }
+          userAccessLevel="owner"
         />
       )}
     </>
