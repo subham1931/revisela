@@ -80,10 +80,10 @@ let FoldersService = class FoldersService {
                 .populate('owner', 'name username email')
                 .populate('sharedWith.user', 'name username email')
                 .populate({
-                path: 'quizzes',
-                select: 'title description tags createdBy isPublic',
-                populate: { path: 'createdBy', select: 'name username email' },
-            })
+                    path: 'quizzes',
+                    select: 'title description tags createdBy isPublic',
+                    populate: { path: 'createdBy', select: 'name username email' },
+                })
                 .lean()
                 .exec();
             if (!folder) {
@@ -91,8 +91,8 @@ let FoldersService = class FoldersService {
             }
             const allFolders = await this.folderModel
                 .find({
-                isInTrash: { $ne: true },
-            })
+                    isInTrash: { $ne: true },
+                })
                 .lean()
                 .exec();
             const folderMap = new Map();
@@ -257,12 +257,12 @@ let FoldersService = class FoldersService {
             });
             await this.folderModel
                 .findByIdAndUpdate(id, {
-                $push: {
-                    sharedWith: {
-                        $each: updatePayload,
+                    $push: {
+                        sharedWith: {
+                            $each: updatePayload,
+                        },
                     },
-                },
-            }, { new: true })
+                }, { new: true })
                 .exec();
             await this.propagateShareToDescendantsAndQuizzes(id, usersToPropagate);
             return this.findOne(id, userId);
@@ -472,9 +472,9 @@ let FoldersService = class FoldersService {
         }
         const updatedFolder = await this.folderModel
             .findByIdAndUpdate(id, {
-            isInTrash: true,
-            deletedAt: new Date(),
-        }, { new: true })
+                isInTrash: true,
+                deletedAt: new Date(),
+            }, { new: true })
             .exec();
         if (!updatedFolder) {
             throw new common_1.HttpException('Folder could not be moved to trash', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
@@ -506,9 +506,9 @@ let FoldersService = class FoldersService {
         }
         const restoredFolder = await this.folderModel
             .findByIdAndUpdate(id, {
-            isInTrash: false,
-            deletedAt: null,
-        }, { new: true })
+                isInTrash: false,
+                deletedAt: null,
+            }, { new: true })
             .exec();
         if (!restoredFolder) {
             throw new common_1.HttpException('Folder could not be restored', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
@@ -736,16 +736,16 @@ let FoldersService = class FoldersService {
             console.log('Finding bookmarked folders for user:', userId);
             const bookmarkedFolders = await this.folderModel
                 .find({
-                isInTrash: { $ne: true },
-                bookmarkedBy: userId,
-            })
+                    isInTrash: { $ne: true },
+                    bookmarkedBy: userId,
+                })
                 .populate('owner', 'name username email')
                 .populate('sharedWith.user', 'name username email')
                 .populate({
-                path: 'quizzes',
-                select: 'title description tags createdBy isPublic bookmarkedBy',
-                populate: { path: 'createdBy', select: 'name username email' },
-            })
+                    path: 'quizzes',
+                    select: 'title description tags createdBy isPublic bookmarkedBy',
+                    populate: { path: 'createdBy', select: 'name username email' },
+                })
                 .lean()
                 .exec();
             console.log('Bookmarked folders query result:', bookmarkedFolders
@@ -792,6 +792,30 @@ let FoldersService = class FoldersService {
         catch (error) {
             console.error('Error finding bookmarked folders:', error);
             throw new common_1.HttpException('Failed to retrieve bookmarked folders', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async findFolderQuizzes(folderId, userId) {
+        try {
+            const folder = await this.folderModel
+                .findOne({ _id: folderId, isInTrash: { $ne: true } })
+                .populate({
+                    path: 'quizzes',
+                    select: 'title description tags createdBy isPublic',
+                    populate: { path: 'createdBy', select: 'name username email' },
+                })
+                .lean()
+                .exec();
+            if (!folder) {
+                throw new common_1.HttpException('Folder not found', common_1.HttpStatus.NOT_FOUND);
+            }
+            return {
+                results: folder.quizzes || [],
+                totalCount: folder.quizzes ? folder.quizzes.length : 0,
+            };
+        }
+        catch (error) {
+            console.error('Error finding folder quizzes:', error);
+            throw new common_1.HttpException('Failed to retrieve folder quizzes', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async moveQuiz(quizId, moveItemsDto, userId) {
@@ -906,10 +930,10 @@ let FoldersService = class FoldersService {
                 .populate('owner', 'name username email')
                 .populate('sharedWith.user', 'name username email')
                 .populate({
-                path: 'quizzes',
-                select: 'title description tags createdBy isPublic',
-                populate: { path: 'createdBy', select: 'name username email' },
-            })
+                    path: 'quizzes',
+                    select: 'title description tags createdBy isPublic',
+                    populate: { path: 'createdBy', select: 'name username email' },
+                })
                 .lean()
                 .exec();
             const folderMap = new Map();
@@ -965,9 +989,9 @@ exports.FoldersService = FoldersService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(folder_schema_1.Folder.name)),
     __param(1, (0, mongoose_1.InjectModel)(quiz_schema_1.Quiz.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        mongoose_2.Model,
-        users_service_1.UsersService,
-        quizzes_service_1.QuizzesService,
-        email_service_1.EmailService])
+    mongoose_2.Model,
+    users_service_1.UsersService,
+    quizzes_service_1.QuizzesService,
+    email_service_1.EmailService])
 ], FoldersService);
 //# sourceMappingURL=folders.service.js.map

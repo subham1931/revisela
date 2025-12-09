@@ -15,6 +15,7 @@ const quiz_schema_1 = require("./schemas/quiz.schema");
 const s3_module_1 = require("../s3/s3.module");
 const users_module_1 = require("../users/users.module");
 const email_module_1 = require("../email/email.module");
+const folder_schema_1 = require("../folders/schemas/folder.schema");
 let QuizzesModule = class QuizzesModule {
 };
 exports.QuizzesModule = QuizzesModule;
@@ -22,6 +23,7 @@ exports.QuizzesModule = QuizzesModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: quiz_schema_1.Quiz.name, schema: quiz_schema_1.QuizSchema }]),
+            mongoose_1.MongooseModule.forFeature([{ name: folder_schema_1.Folder.name, schema: folder_schema_1.FolderSchema }]),
             s3_module_1.S3Module,
             users_module_1.UsersModule,
             email_module_1.EmailModule,

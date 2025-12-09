@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadsController = void 0;
 const common_1 = require("@nestjs/common");
+const fs = require("fs");
+const path = require("path");
 const platform_express_1 = require("@nestjs/platform-express");
 const s3_service_1 = require("../s3/s3.service");
 const auth_decorator_1 = require("../auth/decorators/auth.decorator");
@@ -52,13 +54,34 @@ let UploadsController = class UploadsController {
             throw new common_1.BadRequestException(uploads_constants_1.UPLOAD_MESSAGES.ERRORS.NO_FILE);
         }
         try {
+            /* S3 Upload commented out
             const key = await this.s3Service.uploadFile(file, uploads_constants_1.UPLOAD_FOLDERS.PROFILE_IMAGES);
             const url = await this.s3Service.getFileUrl(key);
+            */
+
+            // Local File Save
+            const uploadDir = path.join(process.cwd(), 'uploads', 'profile-images');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            // Generate unique filename
+            const filename = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
+            const filepath = path.join(uploadDir, filename);
+
+            // Write file
+            fs.writeFileSync(filepath, file.buffer);
+
+            // Construct absolute URL
+            const protocol = req.protocol;
+            const host = req.get('host');
+            const url = `${protocol}://${host}/uploads/profile-images/${filename}`;
+
             await this.usersService.update(req.user.userId, {
                 profileImage: url,
             });
             return {
-                key,
+                // key,
                 url,
                 filename: file.originalname,
                 mimetype: file.mimetype,
@@ -66,6 +89,7 @@ let UploadsController = class UploadsController {
             };
         }
         catch (error) {
+            console.error('Profile upload error (UploadsController):', error);
             throw new common_1.HttpException('Failed to upload profile image', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -161,7 +185,7 @@ __decorate([
 exports.UploadsController = UploadsController = __decorate([
     (0, common_1.Controller)('uploads'),
     __metadata("design:paramtypes", [s3_service_1.S3Service,
-        users_service_1.UsersService,
-        quizzes_service_1.QuizzesService])
+    users_service_1.UsersService,
+    quizzes_service_1.QuizzesService])
 ], UploadsController);
 //# sourceMappingURL=uploads.controller.js.map

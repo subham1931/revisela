@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
+const fs = require("fs");
+const path = require("path");
 const users_service_1 = require("./users.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
 const update_user_dto_1 = require("./dto/update-user.dto");
@@ -95,13 +97,30 @@ let UsersController = class UsersController {
             throw new common_1.BadRequestException(uploads_constants_1.UPLOAD_MESSAGES.ERRORS.NO_FILE);
         }
         try {
+            /* S3 Upload commented out
             const key = await this.s3Service.uploadFile(file, 'profile-images');
             const url = await this.s3Service.getFileUrl(key);
+            */
+
+            // Local File Save
+            const uploadDir = path.join(process.cwd(), 'uploads', 'profile-images');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            // Generate unique filename
+            const filename = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
+            const filepath = path.join(uploadDir, filename);
+            // Write file
+            fs.writeFileSync(filepath, file.buffer);
+            // Construct absolute URL
+            const protocol = req.protocol;
+            const host = req.get('host');
+            const url = `${protocol}://${host}/uploads/profile-images/${filename}`;
             const user = await this.usersService.update(req.user.userId, {
                 profileImage: url,
             });
             return {
-                key,
+                // key,
                 url,
                 filename: file.originalname,
                 mimetype: file.mimetype,
@@ -109,6 +128,7 @@ let UsersController = class UsersController {
             };
         }
         catch (error) {
+            console.error('Profile upload error:', error);
             throw new common_1.HttpException('Failed to upload profile image', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -193,6 +213,6 @@ __decorate([
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService,
-        s3_service_1.S3Service])
+    s3_service_1.S3Service])
 ], UsersController);
 //# sourceMappingURL=users.controller.js.map

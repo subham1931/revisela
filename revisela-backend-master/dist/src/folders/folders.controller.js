@@ -169,8 +169,20 @@ let FoldersController = class FoldersController {
         }
         return this.foldersService.moveQuiz(quizId, moveItemsDto, req.user.userId);
     }
+    async getQuizzes(id, req) {
+        return this.foldersService.findFolderQuizzes(id, req.user.userId);
+    }
 };
 exports.FoldersController = FoldersController;
+__decorate([
+    (0, common_1.Get)(':id/quizzes'),
+    (0, auth_decorator_1.Auth)(),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], FoldersController.prototype, "getQuizzes", null);
 __decorate([
     (0, common_1.Get)('bookmarked'),
     (0, auth_decorator_1.Auth)(),

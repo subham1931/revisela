@@ -59,6 +59,10 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, {
         bufferLogs: true,
     });
+
+    // Serve uploads directory statically
+    app.use('/uploads', require('express').static(path.join(process.cwd(), 'uploads')));
+
     const logger = app.get(logger_service_1.LoggerService);
     app.useLogger(logger);
     const corsOrigin = process.env.CORS_ORIGIN;

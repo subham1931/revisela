@@ -42,8 +42,30 @@ let QuizzesController = class QuizzesController {
             throw error;
         }
     }
+    async createInFolder(folderId, createQuizDto, req) {
+        try {
+            create_quiz_dto_1.createQuizSchema.parse(createQuizDto);
+            return this.quizzesService.createInFolder(createQuizDto, folderId, req.user.userId);
+        }
+        catch (error) {
+            if (error instanceof zod_1.z.ZodError) {
+                throw new common_1.HttpException({
+                    message: 'Validation failed',
+                    errors: error.errors,
+                }, common_1.HttpStatus.BAD_REQUEST);
+            }
+            throw error;
+        }
+    }
     async findAll(limit, offset) {
         return this.quizzesService.findAllPublic(limit, offset);
+    }
+    async getRecent(req, limit, offset) {
+        return this.quizzesService.findRecent(
+            req.user.userId,
+            Number(limit) || 10,
+            Number(offset) || 0
+        );
     }
     async search(query, limit, offset) {
         if (!query) {
@@ -176,6 +198,16 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], QuizzesController.prototype, "create", null);
 __decorate([
+    (0, common_1.Post)('folder/:folderId'),
+    (0, auth_decorator_1.Auth)(),
+    __param(0, (0, common_1.Param)('folderId')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "createInFolder", null);
+__decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('limit')),
     __param(1, (0, common_1.Query)('offset')),
@@ -183,6 +215,16 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", Promise)
 ], QuizzesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('recent'),
+    (0, auth_decorator_1.Auth)(),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('offset')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "getRecent", null);
 __decorate([
     (0, common_1.Get)('search'),
     __param(0, (0, common_1.Query)('q')),

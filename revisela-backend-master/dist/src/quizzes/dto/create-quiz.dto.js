@@ -9,5 +9,6 @@ exports.createQuizSchema = zod_1.z.object({
     tags: zod_1.z.array(zod_1.z.string()).default([]),
     questions: zod_1.z.array(quiz_schema_1.QuestionValidationSchema).min(1),
     isPublic: zod_1.z.boolean().default(true),
+    folderId: zod_1.z.string().optional(),
 });
 //# sourceMappingURL=create-quiz.dto.js.map

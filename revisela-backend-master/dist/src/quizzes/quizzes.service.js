@@ -17,16 +17,18 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const quiz_schema_1 = require("./schemas/quiz.schema");
+const folder_schema_1 = require("../folders/schemas/folder.schema");
 const users_service_1 = require("../users/users.service");
 const email_service_1 = require("../email/email.service");
 let QuizzesService = class QuizzesService {
     quizModel;
     usersService;
     emailService;
-    constructor(quizModel, usersService, emailService) {
+    constructor(quizModel, usersService, emailService, folderModel) {
         this.quizModel = quizModel;
         this.usersService = usersService;
         this.emailService = emailService;
+        this.folderModel = folderModel;
     }
     async create(createQuizDto, userId) {
         const createdQuiz = new this.quizModel({
@@ -35,7 +37,26 @@ let QuizzesService = class QuizzesService {
         });
         return createdQuiz.save();
     }
-    async findAllPublic(limit = 10, offset = 0) {
+    async createInFolder(createQuizDto, folderId, userId) {
+        const createdQuiz = new this.quizModel({
+            ...createQuizDto,
+            createdBy: userId,
+        });
+        const savedQuiz = await createdQuiz.save();
+        if (folderId && this.folderModel) {
+            try {
+                await this.folderModel.findByIdAndUpdate(folderId, {
+                    $addToSet: { quizzes: savedQuiz._id }
+                });
+            } catch (e) {
+                console.error("Failed to add quiz to folder", e);
+            }
+        }
+        return savedQuiz;
+    }
+
+    async findAllPublic(userId, limit = 10, offset = 0) {
+
         const [results, totalCount] = await Promise.all([
             this.quizModel
                 .find({ isPublic: true, isInTrash: { $ne: true } })
@@ -43,16 +64,20 @@ let QuizzesService = class QuizzesService {
                 .skip(offset)
                 .limit(limit)
                 .populate('createdBy', 'name username')
+                .lean()
                 .exec(),
-            this.quizModel
-                .countDocuments({ isPublic: true, isInTrash: { $ne: true } })
-                .exec(),
+
+            this.quizModel.countDocuments({ isPublic: true, isInTrash: { $ne: true } })
         ]);
-        return {
-            results,
-            totalCount,
-        };
+
+        const enhanced = results.map(q => ({
+            ...q,
+            isBookmarked: q.bookmarkedBy?.some(id => id.toString() === userId) ?? false
+        }));
+
+        return { results: enhanced, totalCount };
     }
+
     async findByUser(userId, limit = 10, offset = 0) {
         const [results, totalCount] = await Promise.all([
             this.quizModel
@@ -60,13 +85,25 @@ let QuizzesService = class QuizzesService {
                 .sort({ createdAt: -1 })
                 .skip(offset)
                 .limit(limit)
+                .lean() // Convert to plain JS objects
                 .exec(),
+
             this.quizModel
                 .countDocuments({ createdBy: userId, isInTrash: { $ne: true } })
                 .exec(),
         ]);
+
+
+        const enhancedResults = results.map((quiz) => ({
+            ...quiz,
+            isBookmarked:
+                quiz.bookmarkedBy?.some(
+                    (id) => id.toString() === userId.toString()
+                ) || false,
+        }));
+
         return {
-            results,
+            results: enhancedResults,
             totalCount,
         };
     }
@@ -108,14 +145,14 @@ let QuizzesService = class QuizzesService {
         const [results, totalCount] = await Promise.all([
             this.quizModel
                 .find({
-                $or: [
-                    { title: { $regex: searchRegex } },
-                    { description: { $regex: searchRegex } },
-                    { tags: { $in: [searchRegex] } },
-                ],
-                isPublic: true,
-                isInTrash: { $ne: true },
-            })
+                    $or: [
+                        { title: { $regex: searchRegex } },
+                        { description: { $regex: searchRegex } },
+                        { tags: { $in: [searchRegex] } },
+                    ],
+                    isPublic: true,
+                    isInTrash: { $ne: true },
+                })
                 .sort({ createdAt: -1 })
                 .skip(offset)
                 .limit(limit)
@@ -123,14 +160,14 @@ let QuizzesService = class QuizzesService {
                 .exec(),
             this.quizModel
                 .countDocuments({
-                $or: [
-                    { title: { $regex: searchRegex } },
-                    { description: { $regex: searchRegex } },
-                    { tags: { $in: [searchRegex] } },
-                ],
-                isPublic: true,
-                isInTrash: { $ne: true },
-            })
+                    $or: [
+                        { title: { $regex: searchRegex } },
+                        { description: { $regex: searchRegex } },
+                        { tags: { $in: [searchRegex] } },
+                    ],
+                    isPublic: true,
+                    isInTrash: { $ne: true },
+                })
                 .exec(),
         ]);
         return {
@@ -170,9 +207,9 @@ let QuizzesService = class QuizzesService {
         }
         const updatedQuiz = await this.quizModel
             .findByIdAndUpdate(id, {
-            isInTrash: true,
-            deletedAt: new Date(),
-        }, { new: true })
+                isInTrash: true,
+                deletedAt: new Date(),
+            }, { new: true })
             .exec();
         if (!updatedQuiz) {
             throw new common_1.HttpException('Quiz could not be moved to trash', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
@@ -200,9 +237,9 @@ let QuizzesService = class QuizzesService {
         }
         const restoredQuiz = await this.quizModel
             .findByIdAndUpdate(id, {
-            isInTrash: false,
-            deletedAt: null,
-        }, { new: true })
+                isInTrash: false,
+                deletedAt: null,
+            }, { new: true })
             .exec();
         if (!restoredQuiz) {
             throw new common_1.HttpException('Quiz could not be restored', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
@@ -233,15 +270,15 @@ let QuizzesService = class QuizzesService {
     }
     async findAllInTrash(userId) {
         try {
-            console.log('Finding trash items for user:', userId);
+            // console.log('Finding trash items for user:', userId);
             const trashedQuizzes = await this.quizModel
                 .find({
-                isInTrash: true,
-                createdBy: userId,
-            })
+                    isInTrash: true,
+                    createdBy: userId,
+                })
                 .populate('createdBy', 'name username')
                 .exec();
-            console.log(`Found ${trashedQuizzes.length} quizzes in trash`);
+            // console.log(`Found ${trashedQuizzes.length} quizzes in trash`);
             return trashedQuizzes;
         }
         catch (error) {
@@ -252,9 +289,9 @@ let QuizzesService = class QuizzesService {
     async findAll(userId) {
         return this.quizModel
             .find({
-            isInTrash: { $ne: true },
-            $or: [{ createdBy: userId }],
-        })
+                isInTrash: { $ne: true },
+                $or: [{ createdBy: userId }],
+            })
             .exec();
     }
     async duplicate(id, duplicateQuizDto, userId) {
@@ -341,12 +378,12 @@ let QuizzesService = class QuizzesService {
     }
     async findBookmarked(userId) {
         try {
-            console.log('Finding bookmarked quizzes for user:', userId);
+            // console.log('Finding bookmarked quizzes for user:', userId);
             const bookmarkedQuizzes = await this.quizModel
                 .find({
-                isInTrash: { $ne: true },
-                bookmarkedBy: userId,
-            })
+                    isInTrash: { $ne: true },
+                    bookmarkedBy: userId,
+                })
                 .populate('createdBy', 'name username email')
                 .populate('bookmarkedBy', 'name username email')
                 .lean()
@@ -506,13 +543,55 @@ let QuizzesService = class QuizzesService {
         }
         return result;
     }
+
+    async findRecent(userId, limit = 10, offset = 0) {
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
+
+        const [results, totalCount] = await Promise.all([
+            this.quizModel
+                .find({
+                    isInTrash: { $ne: true },
+                    $or: [
+                        { createdBy: userObjectId },
+                        { bookmarkedBy: userObjectId },
+                        { "sharedWith.user": userObjectId }
+                    ]
+                })
+                .sort({ updatedAt: -1 }) // ⭐ Most recently edited or accessed
+                .skip(offset)
+                .limit(limit)
+                .lean()
+                .exec(),
+
+            this.quizModel.countDocuments({
+                isInTrash: { $ne: true },
+                $or: [
+                    { createdBy: userObjectId },
+                    { bookmarkedBy: userObjectId },
+                    { "sharedWith.user": userObjectId }
+                ]
+            })
+        ]);
+
+        // ⭐ Attach isBookmarked
+        const enhanced = results.map(q => ({
+            ...q,
+            isBookmarked:
+                q.bookmarkedBy?.some(id => id.toString() === userId) || false
+        }));
+
+        return { results: enhanced, totalCount };
+    }
+
 };
 exports.QuizzesService = QuizzesService;
 exports.QuizzesService = QuizzesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(quiz_schema_1.Quiz.name)),
+    __param(3, (0, mongoose_1.InjectModel)(folder_schema_1.Folder.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        users_service_1.UsersService,
-        email_service_1.EmailService])
+    users_service_1.UsersService,
+    email_service_1.EmailService,
+    mongoose_2.Model])
 ], QuizzesService);
 //# sourceMappingURL=quizzes.service.js.map
