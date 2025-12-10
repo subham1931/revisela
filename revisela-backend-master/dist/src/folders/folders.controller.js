@@ -172,8 +172,38 @@ let FoldersController = class FoldersController {
     async getQuizzes(id, req) {
         return this.foldersService.findFolderQuizzes(id, req.user.userId);
     }
+
+    async updateMemberAccess(id, userId, body, req) {
+        // body should contain accessLevel
+        return this.foldersService.updateMemberAccess(id, { userId, accessLevel: body.accessLevel }, req.user.userId);
+    }
+
+    async removeMember(id, userId, req) {
+        return this.foldersService.removeMember(id, userId, req.user.userId);
+    }
 };
 exports.FoldersController = FoldersController;
+__decorate([
+    (0, common_1.Patch)(':id/members/:userId'),
+    (0, auth_decorator_1.Auth)(),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('userId')),
+    __param(2, (0, common_1.Body)()),
+    __param(3, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], FoldersController.prototype, "updateMemberAccess", null);
+__decorate([
+    (0, common_1.Delete)(':id/members/:userId'),
+    (0, auth_decorator_1.Auth)(),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('userId')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], FoldersController.prototype, "removeMember", null);
 __decorate([
     (0, common_1.Get)(':id/quizzes'),
     (0, auth_decorator_1.Auth)(),

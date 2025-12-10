@@ -183,6 +183,65 @@ let FoldersService = class FoldersService {
         }
         return folder;
     }
+
+    async updateMemberAccess(id, manageMemberDto, userId) {
+        const folder = await this.findOne(id, userId);
+        if (!folder) {
+            throw new common_1.HttpException('Folder not found', common_1.HttpStatus.NOT_FOUND);
+        }
+
+        // Check if user is owner or admin (can manage members)
+        const isOwner = (typeof folder.owner === 'string' ? folder.owner : folder.owner._id.toString()) === userId;
+        const isAdmin = folder.sharedWith.some(share => {
+            const shareId = typeof share.user === 'string' ? share.user : share.user._id.toString();
+            return shareId === userId && share.accessLevel === folder_schema_1.AccessLevel.ADMIN;
+        });
+
+        if (!isOwner && !isAdmin) {
+            throw new common_1.HttpException('You do not have permission to manage members in this folder', common_1.HttpStatus.FORBIDDEN);
+        }
+
+        const memberExists = folder.sharedWith.some((member) => {
+            const memberId = typeof member.user === 'string'
+                ? member.user
+                : member.user._id?.toString();
+            return memberId === manageMemberDto.userId;
+        });
+
+        if (!memberExists) {
+            throw new common_1.HttpException('User is not a member of this folder', common_1.HttpStatus.NOT_FOUND);
+        }
+
+        await this.folderModel
+            .findOneAndUpdate({ _id: id, 'sharedWith.user': manageMemberDto.userId }, { $set: { 'sharedWith.$.accessLevel': manageMemberDto.accessLevel } }, { new: true })
+            .exec();
+
+        return this.findOne(id, userId);
+    }
+
+    async removeMember(id, userIdToRemove, userId) {
+        const folder = await this.findOne(id, userId);
+        if (!folder) {
+            throw new common_1.HttpException('Folder not found', common_1.HttpStatus.NOT_FOUND);
+        }
+
+        // Check permissions (same as updateMemberAccess)
+        const isOwner = (typeof folder.owner === 'string' ? folder.owner : folder.owner._id.toString()) === userId;
+        const isAdmin = folder.sharedWith.some(share => {
+            const shareId = typeof share.user === 'string' ? share.user : share.user._id.toString();
+            return shareId === userId && share.accessLevel === folder_schema_1.AccessLevel.ADMIN;
+        });
+
+        if (!isOwner && !isAdmin) {
+            throw new common_1.HttpException('You do not have permission to remove members from this folder', common_1.HttpStatus.FORBIDDEN);
+        }
+
+        await this.folderModel
+            .findByIdAndUpdate(id, { $pull: { sharedWith: { user: userIdToRemove } } }, { new: true })
+            .exec();
+
+        return this.findOne(id, userId);
+    }
     async shareFolder(id, shareFolderDto, userId) {
         const folder = await this.folderModel
             .findById(id)
@@ -981,6 +1040,21 @@ let FoldersService = class FoldersService {
         }
         return (folder.publicAccess !== folder_schema_1.PublicAccessLevel.NONE &&
             folder.publicAccess !== folder_schema_1.PublicAccessLevel.RESTRICTED);
+    }
+    async search(query, userId) {
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const searchRegex = new RegExp(escapedQuery, 'i');
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
+        return this.folderModel.find({
+            name: { $regex: searchRegex },
+            isInTrash: { $ne: true },
+            $or: [
+                { owner: userId },
+                { owner: userObjectId },
+                { 'sharedWith.user': userId },
+                { 'sharedWith.user': userObjectId }
+            ]
+        }).limit(20).exec();
     }
 };
 exports.FoldersService = FoldersService;

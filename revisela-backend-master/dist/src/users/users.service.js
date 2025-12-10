@@ -63,6 +63,17 @@ let UsersService = class UsersService {
     async remove(id) {
         return this.userModel.findByIdAndDelete(id).exec();
     }
+    async search(query) {
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const searchRegex = new RegExp(escapedQuery, 'i');
+        return this.userModel.find({
+            $or: [
+                { username: { $regex: searchRegex } },
+                { name: { $regex: searchRegex } },
+                { email: { $regex: searchRegex } }
+            ]
+        }).limit(20).exec();
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

@@ -71,9 +71,9 @@ let ClassesService = class ClassesService {
     async findAll(userId) {
         const classes = await this.classModel
             .find({
-            $or: [{ owner: userId }, { 'members.user': userId }],
-            isArchived: false,
-        })
+                $or: [{ owner: userId }, { 'members.user': userId }],
+                isArchived: false,
+            })
             .populate('owner', 'name username email')
             .populate('members.user', 'name username email')
             .populate('quizzes', 'title description isPublic')
@@ -149,14 +149,14 @@ let ClassesService = class ClassesService {
         }
         await this.classModel
             .findByIdAndUpdate(classDoc._id, {
-            $push: {
-                members: {
-                    user: userId,
-                    accessLevel: class_schema_1.ClassAccessLevel.MEMBER,
-                    joinedAt: new Date(),
+                $push: {
+                    members: {
+                        user: userId,
+                        accessLevel: class_schema_1.ClassAccessLevel.MEMBER,
+                        joinedAt: new Date(),
+                    },
                 },
-            },
-        }, { new: true })
+            }, { new: true })
             .exec();
         return this.findOne(classDoc._id.toString(), userId);
     }
@@ -301,9 +301,9 @@ let ClassesService = class ClassesService {
         }
         await this.classModel
             .findByIdAndUpdate(id, {
-            isArchived: true,
-            archivedAt: new Date(),
-        }, { new: true })
+                isArchived: true,
+                archivedAt: new Date(),
+            }, { new: true })
             .exec();
         return this.findOne(id, userId);
     }
@@ -323,9 +323,9 @@ let ClassesService = class ClassesService {
         }
         await this.classModel
             .findByIdAndUpdate(id, {
-            isArchived: false,
-            archivedAt: null,
-        }, { new: true })
+                isArchived: false,
+                archivedAt: null,
+            }, { new: true })
             .exec();
         return this.findOne(id, userId);
     }
@@ -391,14 +391,29 @@ let ClassesService = class ClassesService {
             memberCount: classDoc.members.length,
         };
     }
+    async search(query, userId) {
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const searchRegex = new RegExp(escapedQuery, 'i');
+        return this.classModel.find({
+            $or: [
+                { name: { $regex: searchRegex } },
+                { classCode: { $regex: searchRegex } }
+            ],
+            isArchived: false,
+            $or: [
+                { owner: userId },
+                { 'members.user': userId }
+            ]
+        }).limit(20).exec();
+    }
 };
 exports.ClassesService = ClassesService;
 exports.ClassesService = ClassesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(class_schema_1.Class.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        users_service_1.UsersService,
-        quizzes_service_1.QuizzesService,
-        folders_service_1.FoldersService])
+    users_service_1.UsersService,
+    quizzes_service_1.QuizzesService,
+    folders_service_1.FoldersService])
 ], ClassesService);
 //# sourceMappingURL=classes.service.js.map
