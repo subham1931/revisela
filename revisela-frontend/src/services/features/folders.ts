@@ -481,12 +481,14 @@ export const useShareFolder = () => {
       );
 
       if (response.error) {
+        console.error('Share Folder Error:', response.error);
         throw response.error;
       }
 
       return response.data;
     },
     onSuccess: (_, { folderId }) => {
+      console.log('Share Folder Success');
       queryClient.invalidateQueries({ queryKey: ['folder', folderId] });
       queryClient.invalidateQueries({ queryKey: ['folders'] });
     },

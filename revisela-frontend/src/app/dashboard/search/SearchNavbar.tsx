@@ -31,10 +31,10 @@ export const SearchNavbar: React.FC<SearchNavbarProps> = ({
                             key={tab.value}
                             onClick={() => onTabChange(tab.value)}
                             className={cn(
-                                'pb-3 text-sm font-medium transition-colors whitespace-nowrap',
+                                'pb-3 text-base font-semibold transition-colors whitespace-nowrap',
                                 isActive
                                     ? 'text-[#0890A8] border-b-2 border-[#0890A8]'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    : 'text-[#444444] hover:text-black'
                             )}
                         >
                             {tab.label}

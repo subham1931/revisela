@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 
 import { apiRequest } from '../api-client';
-import { QUIZ_ENDPOINTS } from '../endpoints';
+import { QUIZ_ENDPOINTS, SEARCH_ENDPOINTS } from '../endpoints';
 
 interface QuizSet {
   _id: string;
@@ -100,6 +100,36 @@ export const useSearchQuizzes = (
       }
 
       return response.data?.data || { results: [], totalCount: 0 };
+    },
+    enabled: !!query && query.length > 0,
+  });
+};
+
+export interface GlobalSearchResults {
+  users: { _id: string; name: string; username: string; email: string; avatar?: string; profileImage?: string }[];
+  folders: { _id: string; name: string; description?: string }[];
+  quizzes: QuizSet[];
+  classes: { _id: string; name: string; classCode?: string; description?: string }[];
+}
+
+export const useGlobalSearch = (query: string) => {
+  return useQuery({
+    queryKey: ['globalSearch', query],
+    queryFn: async () => {
+      // The API returns { data: GlobalSearchResults, ... } due to TransformInterceptor
+      const response = await apiRequest<{ data: GlobalSearchResults }>(
+        SEARCH_ENDPOINTS.GLOBAL_SEARCH,
+        {
+          params: { q: query },
+        }
+      );
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      // Check if response.data exists and then access the nested .data
+      return response.data?.data || { users: [], folders: [], quizzes: [], classes: [] };
     },
     enabled: !!query && query.length > 0,
   });

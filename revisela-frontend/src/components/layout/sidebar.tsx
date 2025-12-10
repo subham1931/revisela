@@ -97,9 +97,8 @@ const Sidebar = () => {
             <Link
               key={item.path}
               href={item.path}
-              className={`flex items-center gap-3 p-2 rounded-md ${
-                isActive(item.path) ? activeItemStyle : inactiveItemStyle
-              }`}
+              className={`flex items-center gap-3 p-2 rounded-md ${isActive(item.path) ? activeItemStyle : inactiveItemStyle
+                }`}
             >
               {item.icon}
               <span className="text-[16px]">{item.label}</span>
@@ -143,79 +142,70 @@ const Sidebar = () => {
           </div> */}
 
           {/* {showClasses && ( */}
-            <div className="space-y-1">
-              {loadingClasses ? (
-                <div className="text-gray-500 text-sm p-2">Loading classes...</div>
-              ) : hasClasses ? (
-                <>
-                  <div className="space-y-1 overflow-hidden ">
-                    {classMenuItems.map((item, index) => (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        className={`flex items-center gap-3 p-2 rounded-md text-sm transition-all duration-200 ${
-                          isActive(item.path) ? activeClassItemStyle : inactiveItemStyle
-                        } ${
-                          !showAllClasses && hasMoreThanTwoClasses && index >= 2
-                            ? 'hidden'
-                            : ''
+          <div className="space-y-1">
+            {loadingClasses ? (
+              <div className="text-gray-500 text-sm p-2">Loading classes...</div>
+            ) : hasClasses ? (
+              <>
+                <div className="space-y-1 overflow-hidden ">
+                  {classMenuItems.map((item, index) => (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      className={`flex items-center gap-3 p-2 rounded-md text-sm transition-all duration-200 ${isActive(item.path) ? activeClassItemStyle : inactiveItemStyle
+                        } ${!showAllClasses && hasMoreThanTwoClasses && index >= 2
+                          ? 'hidden'
+                          : ''
                         }`}
-                      >
-                        {item.icon}
-                        <span className="truncate">{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
+                    >
+                      {item.icon}
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
 
-                  {/* View More/Less button */}
-                  {hasMoreThanTwoClasses && (
-                    <button
-                      onClick={() => setShowAllClasses(!showAllClasses)}
-                      className="flex items-center justify-center gap-2 p-2 rounded-md text-sm text-[#0890A8] hover:bg-[#0890A8]/10 transition-all duration-200 mt-2"
-                    >
-                      {showAllClasses ? 'View Less' : `View More (${classes.length - 2} more)`}
-                    </button>
-                  )}
-
-                  {/* Create & Join buttons */}
-                  <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-gray-200">
-                    <button
-                      onClick={handleCreateClass}
-                      className="flex items-center justify-start gap-2 p-3 rounded-2xl bg-[#0890A8] text-white hover:bg-[#0890A8]/90 transition-all duration-200"
-                    >
-                      <Users size={18} />
-                      Create A Class
-                    </button>
-                    <button
-                      onClick={handleJoinClass}
-                      className="flex items-center justify-start gap-2 p-3 rounded-2xl bg-[#058F3A] text-white hover:bg-[#058F3A]/90 transition-all duration-200"
-                    >
-                      <Users size={18} />
-                      Join A Class
-                    </button>
-                  </div>
-                </>
-              ) : (
-                // Empty state
-                <div className="flex flex-col gap-3">
-                  <div className="text-gray-500 text-center p-2 border border-gray-200 rounded-md bg-white">
-                    You haven't joined or created any classes yet.
-                  </div>
+                {/* View More/Less button */}
+                {hasMoreThanTwoClasses && (
                   <button
-                    onClick={handleCreateClass}
-                    className="flex items-center justify-center gap-2 p-3 rounded-md bg-[#0890A8] text-white"
+                    onClick={() => setShowAllClasses(!showAllClasses)}
+                    className="flex items-center justify-center gap-2 p-2 rounded-md text-sm text-[#0890A8] hover:bg-[#0890A8]/10 transition-all duration-200 mt-2"
                   >
-                    Create A Class
+                    {showAllClasses ? 'View Less' : `View More (${classes.length - 2} more)`}
                   </button>
+                )}
+
+                {/* Create & Join buttons */}
+                <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-gray-200">
                   <button
                     onClick={handleJoinClass}
-                    className="flex items-center justify-center gap-2 p-3 rounded-md bg-[#058F3A] text-white"
+                    className="flex items-center justify-start gap-2 p-3 rounded-2xl bg-[#058F3A] text-white hover:bg-[#058F3A]/90 transition-all duration-200"
                   >
+                    <Users size={18} />
                     Join A Class
                   </button>
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              // Empty state
+              <div className="flex flex-col gap-3">
+                <div className="text-gray-500 text-center p-2 border border-gray-200 rounded-md bg-white">
+                  You haven't joined or created any classes yet.
+                </div>
+                <button
+                  onClick={handleCreateClass}
+                  className="flex items-center justify-center gap-2 p-3 rounded-md bg-[#0890A8] text-white"
+                >
+                  Create A Class
+                </button>
+                <button
+                  onClick={handleJoinClass}
+                  className="flex items-center justify-center gap-2 p-3 rounded-md bg-[#058F3A] text-white"
+                >
+                  Join A Class
+                </button>
+              </div>
+            )}
+          </div>
           {/* )} */}
         </div>
       </div>

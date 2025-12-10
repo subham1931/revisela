@@ -505,3 +505,13 @@ export const SHARED_ENDPOINTS = {
     method: 'GET',
   } as EndpointConfig,
 };
+
+// -----------------------------------------------------------------------------
+// SEARCH
+// -----------------------------------------------------------------------------
+export const SEARCH_ENDPOINTS = {
+  GLOBAL_SEARCH: {
+    url: `${API_BASE_URL}/search`,
+    method: 'GET',
+  } as EndpointConfig,
+};

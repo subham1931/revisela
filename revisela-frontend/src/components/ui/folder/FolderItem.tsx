@@ -28,7 +28,7 @@ import {
   ConfirmationModal,
   DuplicateFolderModal,
   MoveFolderModal,
-  FolderManageAccessModal,
+  ManageAccessModal,
 } from '@/components/modals';
 import { ActionDropdown, Button, Modal } from '@/components/ui';
 
@@ -82,6 +82,15 @@ const FolderItem: React.FC<FolderItemProps> = ({
     manageAccessModalOpen ? id : undefined,
     manageAccessModalOpen
   );
+
+  useEffect(() => {
+    if (manageAccessModalOpen && folderData) {
+      console.log('FolderData for Access Modal:', folderData);
+      console.log('Owner Type:', typeof folderData.owner);
+      console.log('Owner Value:', folderData.owner);
+      console.log('SharedWith:', folderData.sharedWith);
+    }
+  }, [manageAccessModalOpen, folderData]);
 
   /* -------------------------------------------------------------
      Base actions
@@ -367,10 +376,12 @@ const FolderItem: React.FC<FolderItemProps> = ({
 
       {/* Manage Access Modal */}
       {folderData && currentUser && (
-        <FolderManageAccessModal
+        <ManageAccessModal
           isOpen={manageAccessModalOpen}
           onOpenChange={setManageAccessModalOpen}
-          folderId={id}
+          resourceType="folder"
+          resourceId={id}
+          resourceLink={`${window.location.origin}/folders/${id}`}
           owner={{
             _id: typeof folderData.owner === 'string'
               ? folderData.owner

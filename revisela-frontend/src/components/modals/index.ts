@@ -11,4 +11,4 @@ export * from './GenericManageAccessModal';
 export * from './FolderManageAccessModal';
 export * from './QuizManageAccessModal';
 export * from './CreateQuizModal';
-
+export { default as ManageAccessModal } from './ManageAccessModal';

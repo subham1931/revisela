@@ -116,15 +116,16 @@ export default function ClassesPage() {
                   {(classItem.memberCount || 0) !== 1 ? 's' : ''}
                 </span>
                 <span
-                  className={`px-2 py-1 rounded-full text-xs ${
-                    classItem.publicAccess === 'public'
-                      ? 'bg-green-100 text-green-800'
-                      : classItem.publicAccess === 'restricted'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-gray-100 text-gray-800'
-                  }`}
+                  className={`px-2 py-1 rounded-full text-xs ${classItem.publicAccess === 'edit' ||
+                    classItem.publicAccess === 'view_only'
+                    ? 'bg-green-100 text-green-800'
+                    : classItem.publicAccess === 'restricted'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-800'
+                    }`}
                 >
-                  {classItem.publicAccess === 'public'
+                  {classItem.publicAccess === 'edit' ||
+                    classItem.publicAccess === 'view_only'
                     ? 'Public'
                     : classItem.publicAccess === 'restricted'
                       ? 'Restricted'
@@ -173,6 +174,7 @@ export default function ClassesPage() {
           // Classes will be refetched automatically due to React Query
         }}
       />
+
     </div>
   );
 }

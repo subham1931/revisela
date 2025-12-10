@@ -6,9 +6,11 @@ import { useQuiz, useUpdateQuiz } from '@/services/features/quizzes';
 import { useToast } from '@/components/ui/toast/index';
 import RichTextEditor from '@/app/dashboard/create-set/_components/RichTextEditor';
 // import MediaDisplay from '@/components/ui/quiz/MediaDisplay';
-import { ArrowLeft, Bookmark, Copy, FolderSymlink, LockKeyholeOpen, Merge, SlidersHorizontal, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bookmark, Copy, FolderSymlink, LockKeyholeOpen, Merge, Pencil, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { ActionDropdown } from '@/components/ui';
 import { MoveQuizModal } from '@/components/modals/move-quiz-modal';
+import { useAppSelector } from '@/store';
+import { selectUser } from '@/store/slices/authSlice';
 
 interface QuizDetailProps {
     quizId: string;
@@ -18,6 +20,7 @@ interface QuizDetailProps {
 const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false }) => {
     const router = useRouter();
     const { toast } = useToast();
+    const user = useAppSelector(selectUser);
 
     const { data: quiz, isLoading, error } = useQuiz(quizId);
     const { mutate: updateQuiz, isPending: isUpdating } = useUpdateQuiz();
@@ -135,14 +138,27 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             </div>
         );
 
-    const dropdownItems = [
+    // Determine access level
+    const isOwner = quiz.owner === user?._id || (typeof quiz.owner === 'object' && (quiz.owner as any)?._id === user?._id);
+
+    // Check sharedWith for current user's access level
+    // Assuming sharedWith contains objects like { user: string | User, accessLevel: string }
+    // Cast to any[] because the interface defines it as string[] but we get populated objects
+    const sharedEntry = (quiz.sharedWith as any[])?.find((member: any) =>
+        (typeof member.user === 'string' ? member.user === user?._id : member.user?._id === user?._id)
+    );
+    const accessLevel = isOwner ? 'admin' : (sharedEntry?.accessLevel as string || 'viewer');
+
+    // Define items
+    const allItems = [
         {
             label: 'Edit',
-            icon: <SlidersHorizontal size={16} />,
+            icon: <Pencil size={16} />,
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
                 setIsEditing(true);
             },
+            show: ['admin', 'collaborator'],
         },
         {
             label: 'Duplicate',
@@ -150,6 +166,7 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
             },
+            show: ['admin', 'collaborator', 'member'],
         },
         {
             label: 'Bookmark',
@@ -159,6 +176,7 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
                     className="text-[#444444]"
                 />
             ),
+            show: ['admin', 'collaborator', 'member', 'viewer'],
         },
         {
             label: 'Manage Access',
@@ -166,6 +184,7 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
             },
+            show: ['admin', 'collaborator'],
         },
         {
             label: 'Move',
@@ -174,6 +193,7 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
                 e.stopPropagation();
                 setIsMoveModalOpen(true);
             },
+            show: ['admin', 'collaborator', 'member'],
         },
         {
             label: 'Merge',
@@ -181,6 +201,7 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
             },
+            show: ['admin', 'collaborator', 'member'],
         },
         {
             label: 'Delete',
@@ -189,8 +210,11 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
             },
+            show: ['admin', 'collaborator'],
         },
     ];
+
+    const dropdownItems = allItems.filter(item => item.show.includes(accessLevel));
 
     return (
         <div className="w-full pr-15">

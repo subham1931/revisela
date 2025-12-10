@@ -33,6 +33,25 @@ export const useUsers = () => {
   });
 };
 
+// Get single user by ID
+export const useUser = (userId?: string) => {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const response = await apiRequest<User>(USER_ENDPOINTS.GET_USER(userId));
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      // Handle nested data response if necessary, assuming standard response format
+      return response.data?.data || response.data!;
+    },
+    enabled: !!userId,
+  });
+};
+
 // Create user (admin function)
 export const useCreateUser = () => {
   const queryClient = useQueryClient();

@@ -9,7 +9,6 @@ import {
   Link as LinkIcon,
   LockKeyholeOpen,
 } from 'lucide-react';
-import { boolean, string } from 'zod';
 
 import {
   useAddClassMembers,
@@ -18,52 +17,63 @@ import {
   useUpdateClassPublicAccess,
 } from '@/services/features/classes';
 
+import {
+  useShareFolder,
+  useRemoveFolderMember,
+  useUpdateFolderMemberAccess,
+  useUpdateFolderPublicAccess,
+} from '@/services/features/folders';
+
+import { useUser } from '@/services/features/users';
+
 import { ActionDropdown, Button, Input, Modal } from '@/components/ui';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useToast } from '@/components/ui/toast/index';
+import { MemberRow, AccessUser } from './MemberRow';
 
-export interface AccessUser {
-  _id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  role?: 'owner' | 'collaborator' | 'member';
-  key?: string;
-}
 
 interface ManageAccessModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  // userRole: 'owner' | 'collaborator' | 'member';
   owner: AccessUser;
   members: any[];
   currentUserId: string;
-  classId: string;
-  classLink: string;
-  publicAccess: 'restricted' | 'edit' | 'view_only' | 'none';
+  resourceId: string;
+  resourceLink: string;
+  publicAccess?: 'restricted' | 'edit' | 'view_only' | 'none' | 'public'; // Combined types
   userAccessLevel?: 'owner' | 'collaborator' | 'member' | 'none' | 'admin';
+  resourceType: 'class' | 'folder';
 }
 
-const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
+const ManageAccessModal: React.FC<ManageAccessModalProps> = ({
   isOpen,
   onOpenChange,
-  // userRole,
   owner,
   members,
   currentUserId,
-  classId,
-  classLink,
+  resourceId,
+  resourceLink,
   userAccessLevel,
   publicAccess,
+  resourceType,
 }) => {
   const [peopleWithAccess, setPeopleWithAccess] = useState<AccessUser[]>([]);
   const [emailsInput, setEmailsInput] = useState('');
   const { toast } = useToast();
 
-  const removeMemberMutation = useRemoveClassMember();
-  const addMembersMutation = useAddClassMembers();
-  const updateMemberAccessMutation = useUpdateMemberAccess();
-  const updatePublicAccessMutation = useUpdateClassPublicAccess();
+  // Class Mutations
+  const removeClassMemberMutation = useRemoveClassMember();
+  const addClassMembersMutation = useAddClassMembers();
+  const updateClassMemberAccessMutation = useUpdateMemberAccess();
+  const updateClassPublicAccessMutation = useUpdateClassPublicAccess();
+
+  // Folder Mutations
+  const shareFolderMutation = useShareFolder();
+  const removeFolderMemberMutation = useRemoveFolderMember();
+  const updateFolderMemberAccessMutation = useUpdateFolderMemberAccess();
+  const updateFolderPublicAccessMutation = useUpdateFolderPublicAccess();
+
+  const isFolder = resourceType === 'folder';
 
   useEffect(() => {
     const normalizedMembers: AccessUser[] = members
@@ -88,108 +98,155 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
   const allRoles: Array<'collaborator' | 'member'> = ['collaborator', 'member'];
 
   const handleRemoveAccess = (userId: string) => {
-    removeMemberMutation.mutate(
-      { classId, userId },
-      {
-        onSuccess: () => {
-          toast({
-            title: 'Success',
-            description: 'Member removed successfully.',
-            type: 'success',
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: 'Error',
-            description: error.message || 'Failed to remove member.',
-            type: 'error',
-          });
-        },
-      }
-    );
+    if (isFolder) {
+      removeFolderMemberMutation.mutate(
+        { folderId: resourceId, userId },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Member removed successfully.', type: 'success' });
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to remove member.', type: 'error' });
+          },
+        }
+      );
+    } else {
+      removeClassMemberMutation.mutate(
+        { classId: resourceId, userId },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Member removed successfully.', type: 'success' });
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to remove member.', type: 'error' });
+          },
+        }
+      );
+    }
   };
 
   const handleRoleChange = (userId: string, newRole: 'collaborator' | 'member') => {
-    updateMemberAccessMutation.mutate(
-      { classId, userId, accessLevel: newRole },
-      {
-        onSuccess: () => {
-          toast({
-            title: 'Success',
-            description: 'Member role updated successfully.',
-            type: 'success',
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: 'Error',
-            description: error.message || 'Failed to update member role.',
-            type: 'error',
-          });
-        },
-      }
-    );
+    if (isFolder) {
+      updateFolderMemberAccessMutation.mutate(
+        { folderId: resourceId, userId, accessLevel: newRole },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Member role updated successfully.', type: 'success' });
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to update member role.', type: 'error' });
+          },
+        }
+      );
+    } else {
+      updateClassMemberAccessMutation.mutate(
+        { classId: resourceId, userId, accessLevel: newRole },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Member role updated successfully.', type: 'success' });
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to update member role.', type: 'error' });
+          },
+        }
+      );
+    }
   };
 
-  const handlePublicAccessChange = (newAccess: 'restricted' | 'edit') => {
-    updatePublicAccessMutation.mutate(
-      { classId, publicAccess: newAccess },
-      {
-        onSuccess: () => {
-          toast({
-            title: 'Success',
-            description: 'Public access updated successfully.',
-            type: 'success',
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: 'Error',
-            description: error.message || 'Failed to update public access.',
-            type: 'error',
-          });
-        },
-      }
-    );
+  const handlePublicAccessChange = (newAccess: string) => {
+    if (isFolder) {
+      updateFolderPublicAccessMutation.mutate(
+        { folderId: resourceId, publicAccess: newAccess as 'restricted' | 'public' },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Public access updated successfully.', type: 'success' });
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to update public access.', type: 'error' });
+          },
+        }
+      );
+    } else {
+      updateClassPublicAccessMutation.mutate(
+        { classId: resourceId, publicAccess: newAccess as 'restricted' | 'edit' },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Public access updated successfully.', type: 'success' });
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to update public access.', type: 'error' });
+          },
+        }
+      );
+    }
   };
 
   const handleAddMembers = () => {
+    if (!emailsInput.trim()) {
+      onOpenChange(false);
+      return;
+    }
+
     const emails = emailsInput
       .split(/[\n,]+/)
       .map((e) => e.trim())
       .filter((e) => e.length > 0);
 
     if (!emails.length) {
-      toast({
-        title: 'Error',
-        description: 'Please enter at least one valid email address.',
-        type: 'error',
-      });
+      // This case might be reached if input was just commas/newlines
+      onOpenChange(false);
       return;
     }
 
-    addMembersMutation.mutate(
-      { classId, data: { emails, accessLevel: 'member' } },
-      {
-        onSuccess: () => {
-          toast({
-            title: 'Success',
-            description: 'Members added successfully.',
-            type: 'success',
-          });
-          setEmailsInput('');
-          onOpenChange(false);
-        },
-        onError: (error: any) => {
-          toast({
-            title: 'Error',
-            description: error.message || 'Failed to add members.',
-            type: 'error',
-          });
-        },
+    if (isFolder) {
+      // Validate emails for folders as backend likely only supports emails
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalidEmails = emails.filter((e) => !emailRegex.test(e));
+
+      if (invalidEmails.length > 0) {
+        toast({
+          title: 'Invalid Email(s)',
+          description: `Folder sharing only supports emails. Invalid: ${invalidEmails.join(', ')}`,
+          type: 'error'
+        });
+        return;
       }
-    );
+    }
+
+    if (isFolder) {
+      shareFolderMutation.mutate(
+        { folderId: resourceId, emails, accessLevel: 'member' },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Members added successfully.', type: 'success' });
+            setEmailsInput('');
+            onOpenChange(false);
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to add members.', type: 'error' });
+          },
+        }
+      );
+    } else {
+      addClassMembersMutation.mutate(
+        { classId: resourceId, data: { emails, accessLevel: 'member' } },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Members added successfully.', type: 'success' });
+            setEmailsInput('');
+            onOpenChange(false);
+          },
+          onError: (error: any) => {
+            toast({ title: 'Error', description: error.message || 'Failed to add members.', type: 'error' });
+          },
+        }
+      );
+    }
   };
+
+  const isLoading = isFolder
+    ? shareFolderMutation.isPending || removeFolderMemberMutation.isPending || updateFolderMemberAccessMutation.isPending || updateFolderPublicAccessMutation.isPending
+    : addClassMembersMutation.isPending || removeClassMemberMutation.isPending || updateClassMemberAccessMutation.isPending || updateClassPublicAccessMutation.isPending;
 
   return (
     <Modal
@@ -205,11 +262,14 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
           <div className="space-y-2 my-4">
             <p className="text-sm font-semibold">Share Access</p>
             <p className="text-xs text-gray-500">
-              Enter usernames or emails (separate by commas or line breaks). By
-              default, users will be added as “Member”.
+              {isFolder
+                ? 'Enter email addresses (separate by commas or line breaks).'
+                : 'Enter usernames or emails (separate by commas or line breaks).'}
+              {' '}
+              By default, users will be added as “Member”.
             </p>
             <Input
-              placeholder="Enter usernames or emails"
+              placeholder={isFolder ? 'Enter email addresses' : 'Enter usernames or emails'}
               className="rounded-xl"
               value={emailsInput}
               onChange={(e) => setEmailsInput(e.target.value)}
@@ -225,7 +285,7 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
                 content={
                   <div className="space-y-1 text-xs">
                     <p>
-                      <strong>Admin:</strong> manage class & access
+                      <strong>Admin:</strong> manage {resourceType} & access
                     </p>
                     <p>
                       <strong>Collaborator:</strong> manage resources & access
@@ -278,50 +338,14 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
                   ];
 
                   return (
-                    <div
+                    <MemberRow
                       key={user.key}
-                      className="flex items-center justify-between py-2 px-2 mb-1  rounded"
-                    >
-                      <div className="flex items-center gap-2 w-full">
-                        {user.avatar ? (
-                          <Image
-                            src={user.avatar}
-                            alt={user.name}
-                            width={32}
-                            height={32}
-                            className="rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-white">
-                            {initials}
-                          </div>
-                        )}
-
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">
-                            {user.name}{' '}
-                            {user._id === currentUserId && (
-                              <span className="text-gray-400">(You)</span>
-                            )}
-                          </p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-
-                        <div className="ml-auto flex items-center">
-                          {user.role === 'owner' ? (
-                            <span className="capitalize text-sm text-[#ACACAC] font-medium p-2">
-                              {displayRole}
-                            </span>
-                          ) : (
-                            <ActionDropdown
-                              triggerName={displayRole}
-                              triggerIcon={<ChevronDown size={16} />}
-                              items={roleDropdownItems}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                      user={user}
+                      currentUserId={currentUserId}
+                      onRoleChange={handleRoleChange}
+                      onRemoveAccess={handleRemoveAccess}
+                      allRoles={allRoles}
+                    />
                   );
                 })}
               </div>
@@ -356,8 +380,9 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
                 {userAccessLevel === 'owner' ? (
                   <ActionDropdown
                     triggerName={
-                      publicAccess.charAt(0).toUpperCase() +
-                      publicAccess.slice(1)
+                      publicAccess === 'public' || publicAccess === 'edit'
+                        ? 'Anyone can access'
+                        : 'Restricted'
                     }
                     triggerIcon={<ChevronDown size={16} />}
                     items={[
@@ -372,12 +397,11 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
                       {
                         label: 'Anyone can access',
                         className:
-                          publicAccess === 'edit'
+                          publicAccess === 'edit' || publicAccess === 'public'
                             ? 'text-[#0890A8] font-semibold'
                             : '',
-                        onClick: () => handlePublicAccessChange('edit'),
+                        onClick: () => handlePublicAccessChange(isFolder ? 'public' : 'edit'),
                       },
-                      // { label: 'Private', className: publicAccess === 'private' ? 'text-[#0890A8] font-semibold' : '', onClick: () => onManage?.('publicAccess', 'private') },
                     ]}
                   />
                 ) : (
@@ -393,7 +417,7 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
               <Button
                 variant="outline"
                 className="border-[#0890A8] flex items-center gap-1"
-                onClick={() => navigator.clipboard.writeText(classLink)}
+                onClick={() => navigator.clipboard.writeText(resourceLink)}
               >
                 <LinkIcon size={16} />
                 Copy Link
@@ -402,9 +426,9 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
                 variant="solid"
                 className="bg-[#0890A8]"
                 onClick={handleAddMembers}
-                disabled={addMembersMutation.isPending}
+                disabled={isLoading}
               >
-                {addMembersMutation.isPending ? 'Adding...' : 'Done'}
+                {isLoading ? 'Adding...' : 'Done'}
               </Button>
             </div>
           </div>
@@ -416,4 +440,6 @@ const ManageAccesssModal: React.FC<ManageAccessModalProps> = ({
   );
 };
 
-export default ManageAccesssModal;
+
+
+export default ManageAccessModal;

@@ -13,15 +13,7 @@ import {
 import { ActionDropdown, Button, Input, Modal } from '@/components/ui';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useToast } from '@/components/ui/toast/index';
-
-export interface AccessUser {
-  _id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  role?: 'owner' | 'collaborator' | 'member';
-  key?: string;
-}
+import { MemberRow, AccessUser } from './MemberRow';
 
 interface GenericManageAccessModalProps {
   isOpen: boolean;
@@ -90,14 +82,20 @@ const GenericManageAccessModal: React.FC<GenericManageAccessModalProps> = ({
   };
 
   const handleAddMembers = async () => {
-    if (!emailInput.trim()) return;
+    if (!emailInput.trim()) {
+      onOpenChange(false);
+      return;
+    }
 
     const emails = emailInput
       .split(',')
       .map((email) => email.trim())
       .filter((email) => email);
 
-    if (emails.length === 0) return;
+    if (emails.length === 0) {
+      onOpenChange(false);
+      return;
+    }
 
     // Validate emails
     if (!validateEmails(emails)) {
@@ -202,23 +200,9 @@ const GenericManageAccessModal: React.FC<GenericManageAccessModalProps> = ({
     }
   };
 
-  const allUsers = [owner, ...members];
+  const allUsers = [{ ...owner, role: 'owner' } as AccessUser, ...members];
 
-  const roleDropdownItems = (user: AccessUser) => [
-    {
-      label: 'Collaborator',
-      onClick: () => handleRoleChange(user._id, 'collaborator'),
-    },
-    {
-      label: 'Member',
-      onClick: () => handleRoleChange(user._id, 'member'),
-    },
-    {
-      label: 'Remove Access',
-      onClick: () => handleRemoveMember(user._id),
-      className: 'text-red-500',
-    },
-  ];
+
 
   const publicAccessDropdownItems = [
     {
@@ -250,150 +234,137 @@ const GenericManageAccessModal: React.FC<GenericManageAccessModalProps> = ({
       icon={<LockKeyholeOpen size={20} className="text-gray-500" />}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      className="max-w-2xl"
+      contentClassName="max-w-md"
     >
-      <div className="flex flex-col gap-6 my-5">
-        {/* Add Members Section */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Add people
-            </h3>
-            <Tooltip content="Enter email addresses separated by commas">
-              <Info size={16} className="text-gray-400 cursor-help" />
-            </Tooltip>
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  type="text"
-                  placeholder="Enter email addresses..."
-                  value={emailInput}
-                  onChange={(e) => {
-                    setEmailInput(e.target.value);
-                    setEmailError('');
-                  }}
-                  className={emailError ? 'border-red-500' : ''}
-                />
-                {emailError && (
-                  <p className="text-sm text-red-500 mt-1">{emailError}</p>
-                )}
-              </div>
-              <Button
-                onClick={handleAddMembers}
-                disabled={!emailInput.trim() || isLoading}
-                className="bg-[#0890A8] text-white"
-              >
-                Add
-              </Button>
-            </div>
-          </div>
+      <div className="flex flex-col gap-4 my-4">
+        {/* Share Access */}
+        <div className="space-y-2">
+          <p className="text-sm font-semibold">Share Access</p>
+          <p className="text-xs text-gray-500">
+            {resourceType === 'folder'
+              ? 'Enter email addresses (separate by commas or line breaks).'
+              : 'Enter usernames or emails (separate by commas or line breaks).'}
+            {' '}
+            By default, users will be added as “Member”.
+          </p>
+          <Input
+            placeholder={resourceType === 'folder' ? 'Enter email addresses' : 'Enter usernames or emails'}
+            className="rounded-xl"
+            value={emailInput}
+            onChange={(e) => {
+              setEmailInput(e.target.value);
+              setEmailError('');
+            }}
+          />
+          {emailError && (
+            <p className="text-sm text-red-500 mt-1">{emailError}</p>
+          )}
         </div>
 
-        {/* Members List */}
-        <div className="flex flex-col gap-3">
-          <h3 className="text-lg font-semibold text-gray-900">
-            People with access
-          </h3>
-          <div className="space-y-3">
-            {allUsers.map((user) => {
-              const displayRole = user.role === 'owner' ? 'Admin' : user.role;
-              const isOwner = user.role === 'owner';
-              const isCurrentUser = user._id === currentUserId;
-
-              return (
-                <div
-                  key={user._id}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src={user.avatar || '/default-avatar.png'}
-                      alt={user.name}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {user.name}
-                        {isCurrentUser && (
-                          <span className="text-sm text-gray-500 ml-2">
-                            (You)
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isOwner ? (
-                      <span className="capitalize text-sm text-[#ACACAC] font-medium p-2">
-                        {displayRole}
-                      </span>
-                    ) : (
-                      <ActionDropdown
-                        triggerName={displayRole}
-                        triggerIcon={<ChevronDown size={16} />}
-                        items={roleDropdownItems(user)}
-                      />
-                    )}
-                  </div>
+        {/* People with Access */}
+        <div>
+          <div className="flex gap-2 items-center my-2">
+            <h3 className="text-sm font-semibold">People with Access</h3>
+            <Tooltip
+              position="bottom"
+              content={
+                <div className="space-y-1 text-xs">
+                  <p>
+                    <strong>Admin:</strong> manage {resourceType} & access
+                  </p>
+                  <p>
+                    <strong>Collaborator:</strong> manage resources & access
+                  </p>
+                  <p>
+                    <strong>Member:</strong> can access resources only
+                  </p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Public Access Section */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Public access
-            </h3>
-            <Tooltip content="Control who can access this resource via public link">
-              <Info size={16} className="text-gray-400 cursor-help" />
+              }
+            >
+              <Info size={18} className="text-gray-600 cursor-pointer" />
             </Tooltip>
           </div>
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">Link sharing</p>
-              <p className="text-sm text-gray-500">
-                {publicAccess === 'restricted'
-                  ? 'Only people with access can view'
-                  : 'Anyone with the link can view'}
-              </p>
-            </div>
-            <ActionDropdown
-              triggerName={
-                publicAccess === 'restricted' ? 'Restricted' : 'Anyone can access'
-              }
-              triggerIcon={<ChevronDown size={16} />}
-              items={publicAccessDropdownItems}
-            />
-          </div>
-        </div>
 
-        {/* Share Link Section */}
-        <div className="flex flex-col gap-3">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Share link
-          </h3>
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              value={shareLink}
-              readOnly
-              className="flex-1"
-            />
+          {allUsers.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">
+              No one has access yet.
+            </p>
+          ) : (
+            <div
+              className={`rounded-lg ${allUsers.length > 5 ? 'max-h-70 overflow-y-auto' : ''} `}
+            >
+              {allUsers.map((user) => {
+                const allRoles: Array<'collaborator' | 'member'> = ['collaborator', 'member'];
+                // Ensure user has a key for React list
+                const key = user.key || user._id;
+
+                return (
+                  <MemberRow
+                    key={key}
+                    user={user}
+                    currentUserId={currentUserId}
+                    onRoleChange={handleRoleChange}
+                    onRemoveAccess={handleRemoveMember}
+                    allRoles={allRoles}
+                  />
+                );
+              })}
+            </div>
+          )}
+
+          {/* Public Access */}
+          <div className="w-full flex justify-between items-center mt-4">
+            <div className="flex gap-2 items-center">
+              <h3 className="text-sm font-semibold">
+                Public Access To Resources
+              </h3>
+              <Tooltip
+                position="bottom"
+                content={
+                  <div className="space-y-1 text-xs">
+                    <p>
+                      <strong>Restricted:</strong> only users with approved
+                      access
+                    </p>
+                    <p>
+                      <strong>Anyone can access:</strong> access without any
+                      approval
+                    </p>
+                  </div>
+                }
+              >
+                <Info size={18} className="text-gray-600 cursor-pointer" />
+              </Tooltip>
+            </div>
+
+            <div className="ml-auto">
+              <ActionDropdown
+                triggerName={
+                  publicAccess === 'restricted' ? 'Restricted' : 'Anyone can access'
+                }
+                triggerIcon={<ChevronDown size={16} />}
+                items={publicAccessDropdownItems}
+              />
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-between mt-4">
             <Button
-              onClick={handleCopyLink}
               variant="outline"
-              className="flex items-center gap-2"
+              className="border-[#0890A8] flex items-center gap-1"
+              onClick={handleCopyLink}
             >
               <LinkIcon size={16} />
               Copy Link
+            </Button>
+            <Button
+              variant="solid"
+              className="bg-[#0890A8]"
+              onClick={handleAddMembers}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Adding...' : 'Done'}
             </Button>
           </div>
         </div>

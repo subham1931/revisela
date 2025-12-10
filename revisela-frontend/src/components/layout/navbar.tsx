@@ -30,6 +30,11 @@ const RootNavbar = () => {
 
   const user = useAppSelector(selectUser);
   const profileImage = useAppSelector(selectProfileImage);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleAccountSettingsClick = () => {
     router.push(ROUTES.DASHBOARD.ACCOUNT_SETTINGS);
@@ -167,7 +172,7 @@ const RootNavbar = () => {
                 className="h-10 w-10 flex items-center justify-center rounded-full bg-gray-200 text-gray-700 p-0 focus:outline-none overflow-hidden"
                 aria-label="User options"
               >
-                {profileImage ? (
+                {mounted && profileImage ? (
                   <Image
                     src={profileImage}
                     alt="Profile"

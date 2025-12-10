@@ -23,8 +23,7 @@ import {
   useUpdateMemberAccess,
 } from '@/services/features/classes';
 
-import { ConfirmationModal } from '@/components/modals';
-import ManageAccesssModal from '@/components/modals/ManageAccessModal';
+import { ConfirmationModal, ManageAccessModal } from '@/components/modals';
 import { ActionDropdown, Button } from '@/components/ui';
 import { FolderItem } from '@/components/ui/folder';
 import { ContentLoader } from '@/components/ui/loaders';
@@ -88,7 +87,10 @@ export default function ClassPage() {
 
   const handleBack = () => router.push(ROUTES.DASHBOARD.CLASSES.ROOT);
 
-  const handleDeleteClass = () => setDeleteModalOpen(true);
+  const handleDeleteClass = () => {
+    console.log('Delete button clicked');
+    setDeleteModalOpen(true);
+  };
 
   const handleLeaveClass = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -213,35 +215,35 @@ export default function ClassPage() {
                 // Only owners or collaborators can edit or manage access
                 ...(isOwner || isCollaborator
                   ? [
-                      {
-                        label: 'Edit Class',
-                        icon: <Pen size={16} />,
-                        onClick: () => {
-                          // TODO: Implement edit class functionality
-                          toast({
-                            title: 'Edit Class',
-                            description: 'Edit class functionality coming soon',
-                            type: 'info',
-                          });
-                        },
+                    {
+                      label: 'Edit Class',
+                      icon: <Pen size={16} />,
+                      onClick: () => {
+                        // TODO: Implement edit class functionality
+                        toast({
+                          title: 'Edit Class',
+                          description: 'Edit class functionality coming soon',
+                          type: 'info',
+                        });
                       },
-                      {
-                        label: 'Manage Access',
-                        icon: <Lock size={16} />,
-                        onClick: () => setIsManageAccessModalOpen(true),
-                      },
-                    ]
+                    },
+                    {
+                      label: 'Manage Access',
+                      icon: <Lock size={16} />,
+                      onClick: () => setIsManageAccessModalOpen(true),
+                    },
+                  ]
                   : []),
 
                 // Only non-owners can leave
                 ...(!isOwner && !isCollaborator
                   ? [
-                      {
-                        label: 'Copy Class Link',
-                        icon: <Link size={16} />,
-                        // onClick: handleCopyClassLink,
-                      },
-                    ]
+                    {
+                      label: 'Copy Class Link',
+                      icon: <Link size={16} />,
+                      // onClick: handleCopyClassLink,
+                    },
+                  ]
                   : []),
 
                 {
@@ -254,13 +256,13 @@ export default function ClassPage() {
                 // Only owner can delete class
                 ...(isOwner
                   ? [
-                      {
-                        label: 'Delete Class',
-                        icon: <Trash2 size={16} />,
-                        className: 'text-red-500',
-                        onClick: handleDeleteClass,
-                      },
-                    ]
+                    {
+                      label: 'Delete Class',
+                      icon: <Trash2 size={16} />,
+                      className: 'text-red-500',
+                      onClick: handleDeleteClass,
+                    },
+                  ]
                   : []),
               ]}
               triggerIcon={<SlidersHorizontal size={20} />}
@@ -276,11 +278,10 @@ export default function ClassPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`flex items-center gap-2 py-2 px-1 border-b-2 font-semibold text-md ${
-                activeTab === tab
-                  ? 'border-[#0890A8] text-[#0890A8]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+              className={`flex items-center gap-2 py-2 px-1 border-b-2 font-semibold text-md ${activeTab === tab
+                ? 'border-[#0890A8] text-[#0890A8]'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
             >
               {tab}
             </button>
@@ -319,8 +320,8 @@ export default function ClassPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {quizzes.map((quiz: any) => (
                     <QuizCard
-                      key={quiz.id}
-                      id={quiz.id}
+                      key={quiz._id || quiz.id}
+                      id={quiz._id || quiz.id}
                       title={quiz.title}
                       description={quiz.description || ''}
                       tags={quiz.tags || []}
@@ -363,6 +364,39 @@ export default function ClassPage() {
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Delete Class"
+        icon={<Trash2 size={20} className="text-red-500" />}
+        titleColor="text-red-600"
+        subHeading="Are you sure you want to delete this class?"
+        description="This action cannot be undone. All resources and member access will be lost."
+        centerDescription
+        confirmText="Delete Class"
+        confirmButtonClass="bg-red-500 hover:bg-red-600 text-white"
+        onConfirm={() => {
+          deleteClassMutation.mutate(classId, {
+            onSuccess: () => {
+              toast({
+                title: 'Class deleted successfully',
+                description: 'The class has been permanently deleted.',
+                type: 'success',
+              });
+              router.push('/dashboard');
+            },
+            onError: (error: any) => {
+              toast({
+                title: 'Failed to delete class',
+                description: error.message || 'Something went wrong.',
+                type: 'error',
+              });
+            },
+          });
+          setDeleteModalOpen(false);
+        }}
+      />
+
+      <ConfirmationModal
         isOpen={leaveModalOpen}
         onOpenChange={setLeaveModalOpen}
         title="Leave Class"
@@ -397,14 +431,15 @@ export default function ClassPage() {
       />
 
       {/* 🔥 updated: pass userAccessLevel directly, removed normalizedUserRole */}
-      <ManageAccesssModal
+      <ManageAccessModal
         isOpen={isManageAccessModalOpen}
         onOpenChange={setIsManageAccessModalOpen}
+        resourceType="class"
+        resourceId={classId}
+        resourceLink={classLink}
         owner={classData.owner}
         members={classData.members || []}
         currentUserId={currentUserId}
-        classId={classId}
-        classLink={classLink}
         publicAccess={classData?.publicAccess}
         userAccessLevel={userAccessLevel}
       />

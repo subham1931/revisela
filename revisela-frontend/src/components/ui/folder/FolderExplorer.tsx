@@ -16,7 +16,7 @@ interface FolderExplorerProps {
   renderContent?: (currentFolderId?: string, options?: RenderContentOptions) => React.ReactNode;
 }
 
-const FolderExplorer: React.FC<FolderExplorerProps> = ({
+const   FolderExplorer: React.FC<FolderExplorerProps> = ({
   title = 'Folders',
   renderContent,
 }) => {
