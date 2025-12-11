@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useQuiz, useUpdateQuiz } from '@/services/features/quizzes';
 import { useToast } from '@/components/ui/toast/index';
@@ -118,9 +118,10 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
         setFormData({ ...formData, questions: updatedQuestions });
     };
 
+    const pathname = usePathname();
     const handleGoBack = () => router.back();
     const handleRevise = () => {
-        if (quizId) router.push(`${quizId}/revise`);
+        if (quizId) router.push(`${pathname}/revise`);
     };
 
     if (isLoading)

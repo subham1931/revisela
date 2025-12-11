@@ -2,8 +2,10 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { Play } from 'lucide-react';
 import React from 'react';
 import { useAppSelector } from '@/store';
+import MACBOOK_IMAGE from '@/assets/images/Macbook.png';
 
 // ✅ Props interface
 interface LandingPageProps {
@@ -11,6 +13,7 @@ interface LandingPageProps {
 }
 
 const LANDING_IMAGE = '/images/landing-image.png';
+// const MACBOOK_IMAGE = "/assets/Macbook.png"
 const UNDERLINE_ICON = '/icons/underline-icon.svg';
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
@@ -34,9 +37,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   return (
     <>
       {/* Hero Section */}
-      <div className="w-full px-4 py-30 md:px-[20%] lg:px-[20%] bg-white">
-        <div className="rounded-lg p-6 md:p-8 mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 lg:flex-row lg:gap-8">
-          <div className="w-full md:w-1/2">
+      <div className="w-full h-screen px-4 py-30 md:px-[10%] lg:px-[10%] bg-white">
+        <div className="w-full h-full rounded-lg p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-2 lg:flex-row lg:gap-8">
+          <div className="w-full md:w-1/2 flex justify-center items-center">
             <div className="relative mb-8">
               <h2 className="text-3xl font-bold my-2 lg:text-[3rem]">
                 A simple tool{' '}
@@ -50,25 +53,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
           </div>
 
-          <div className="w-full md:w-1/2 flex justify-center">
-            <div className="bg-blue-100 h-[250px] w-[400px] rounded-lg flex items-center justify-center max-w-full md:max-h-[250px]">
-              <p className="text-blue-500 text-center p-4">
-                Landing Image Placeholder
-              </p>
-            </div>
-            {/* Uncomment when you have a real image
+          <div className="w-full h-full md:w-1/2 flex justify-center p-4 md:p-8 rounded-lg">
             <Image
               priority
-              height={250}
-              width={400}
-              src={LANDING_IMAGE}
+              height={400}
+              width={600}
+              src={MACBOOK_IMAGE}
               alt="Landing illustration"
-              className="object-contain max-h-[250px] w-auto"
-            /> */}
+              className="object-contain max-h-[600px] w-auto"
+            />
           </div>
         </div>
 
-        <div className="flex justify-center mt-5">
+        <div className="flex justify-center mt-5  w-fit mx-auto">
           <button
             onClick={handleGetStarted}
             className="px-6 py-3 bg-[#0890A8] text-white font-medium rounded-lg hover:transition-colors transform hover:scale-105"
@@ -131,8 +128,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <p>Just add the text to be displayed on the front and back ✏️</p>
             </div>
             <div className="w-full md:w-1/2 max-w-[405px] aspect-[405/270] rounded-2xl overflow-hidden">
-              <div className="bg-gray-200 h-full flex items-center justify-center shadow-md rounded-lg">
-                <p className="text-gray-600 text-center p-4">
+              <div className="bg-gray-200 h-full flex flex-col items-center justify-center shadow-md rounded-lg group cursor-pointer hover:bg-gray-300 transition-colors">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform">
+                  <Play className="w-6 h-6 text-primary-no bg-transparent fill-current text-gray-800 ml-1" />
+                </div>
+                <p className="text-gray-600 text-center font-medium">
                   Flashcard Demo Video
                 </p>
               </div>
@@ -151,8 +151,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </p>
             </div>
             <div className="w-full md:w-1/2 max-w-[405px] aspect-[405/270] rounded-2xl overflow-hidden">
-              <div className="bg-gray-200 h-full flex items-center justify-center shadow-md rounded-lg">
-                <p className="text-gray-600 text-center p-4">MCQ Demo Video</p>
+              <div className="bg-gray-200 h-full flex flex-col items-center justify-center shadow-md rounded-lg group cursor-pointer hover:bg-gray-300 transition-colors">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform">
+                  <Play className="w-6 h-6 text-gray-800 ml-1 fill-current" />
+                </div>
+                <p className="text-gray-600 text-center font-medium">MCQ Demo Video</p>
               </div>
             </div>
           </div>
@@ -166,8 +169,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </p>
             </div>
             <div className="w-full md:w-1/2 max-w-[405px] aspect-[405/270] rounded-2xl overflow-hidden">
-              <div className="bg-gray-200 h-full flex items-center justify-center shadow-md rounded-lg">
-                <p className="text-gray-600 text-center p-4">
+              <div className="bg-gray-200 h-full flex flex-col items-center justify-center shadow-md rounded-lg group cursor-pointer hover:bg-gray-300 transition-colors">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform">
+                  <Play className="w-6 h-6 text-gray-800 ml-1 fill-current" />
+                </div>
+                <p className="text-gray-600 text-center font-medium">
                   Fill-In Demo Video
                 </p>
               </div>
@@ -207,7 +213,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="mt-8">
           <button
             onClick={handleGetStarted}
-            className="px-6 py-3 bg-[#0890A8] text-white font-medium rounded-md hover:bg-[#0890A8]/75 transition-all hover:scale-105"
+            className="px-6 py-3 bg-primary-blue text-white font-medium rounded-md hover:bg-primary-blue/75 transition-all hover:scale-105"
           >
             Try Now
           </button>
