@@ -16,6 +16,11 @@ export interface Quiz {
   tags?: string[];
   folderId?: string;
   owner?: string;
+  createdBy?: string | {
+    _id: string;
+    name: string;
+    username?: string;
+  };
   sharedWith?: string[];
   publicAccess?: string;
   isBookmarked?: boolean;
