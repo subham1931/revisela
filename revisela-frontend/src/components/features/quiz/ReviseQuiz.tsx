@@ -451,7 +451,7 @@ const ReviseQuiz: React.FC<ReviseQuizProps> = ({ quizId: propQuizId }) => {
             <MoveQuizModal
                 isOpen={isMoveModalOpen}
                 onOpenChange={setIsMoveModalOpen}
-                quizId={quizId}
+                quizId={quizId || ''}
                 quizTitle={quiz.title}
                 onSuccess={() => {
                     // Maybe refresh quiz or redirect?

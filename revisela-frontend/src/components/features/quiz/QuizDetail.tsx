@@ -2,13 +2,14 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import { useQuiz, useUpdateQuiz } from '@/services/features/quizzes';
+import { useQuiz, useUpdateQuiz, useBookmarkQuiz, useDeleteQuiz } from '@/services/features/quizzes';
 import { useToast } from '@/components/ui/toast/index';
 import RichTextEditor from '@/app/dashboard/create-set/_components/RichTextEditor';
 // import MediaDisplay from '@/components/ui/quiz/MediaDisplay';
 import { ArrowLeft, Bookmark, Copy, FolderSymlink, LockKeyholeOpen, Merge, Pencil, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { ActionDropdown } from '@/components/ui';
 import { MoveQuizModal } from '@/components/modals/move-quiz-modal';
+import { DuplicateQuizModal, ConfirmationModal, QuizManageAccessModal } from '@/components/modals';
 import { useAppSelector } from '@/store';
 import { selectUser } from '@/store/slices/authSlice';
 
@@ -24,9 +25,15 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
 
     const { data: quiz, isLoading, error } = useQuiz(quizId);
     const { mutate: updateQuiz, isPending: isUpdating } = useUpdateQuiz();
+    const bookmarkQuiz = useBookmarkQuiz();
+    const deleteQuiz = useDeleteQuiz();
 
     const [isEditing, setIsEditing] = useState(initialEditMode);
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+    const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+    const [isManageAccessModalOpen, setIsManageAccessModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -124,6 +131,26 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
         if (quizId) router.push(`${pathname}/revise`);
     };
 
+    const handleDelete = () => {
+        deleteQuiz.mutate(quizId, {
+            onSuccess: () => {
+                toast({
+                    title: 'Success',
+                    description: 'Quiz deleted successfully',
+                    type: 'success',
+                });
+                router.replace('/dashboard/library');
+            },
+            onError: () => {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to delete quiz',
+                    type: 'error',
+                });
+            }
+        });
+    };
+
     if (isLoading)
         return (
             <div className="text-center py-10 text-gray-500">
@@ -166,17 +193,22 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             icon: <Copy size={16} />,
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
+                setIsDuplicateModalOpen(true);
             },
             show: ['admin', 'collaborator', 'member'],
         },
         {
-            label: 'Bookmark',
+            label: quiz.isBookmarked ? 'Undo Bookmark' : 'Bookmark',
             icon: (
                 <Bookmark
                     size={16}
-                    className="text-[#444444]"
+                    className={quiz.isBookmarked ? 'fill-[#444444] text-[#444444]' : 'text-[#444444]'}
                 />
             ),
+            onClick: (e: React.MouseEvent) => {
+                e.stopPropagation();
+                bookmarkQuiz.mutate({ quizId, bookmarked: !quiz.isBookmarked });
+            },
             show: ['admin', 'collaborator', 'member', 'viewer'],
         },
         {
@@ -184,6 +216,7 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             icon: <LockKeyholeOpen size={16} />,
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
+                setIsManageAccessModalOpen(true);
             },
             show: ['admin', 'collaborator'],
         },
@@ -196,20 +229,21 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
             },
             show: ['admin', 'collaborator', 'member'],
         },
-        {
-            label: 'Merge',
-            icon: <Merge size={16} />,
-            onClick: (e: React.MouseEvent) => {
-                e.stopPropagation();
-            },
-            show: ['admin', 'collaborator', 'member'],
-        },
+        // {
+        //     label: 'Merge',
+        //     icon: <Merge size={16} />,
+        //     onClick: (e: React.MouseEvent) => {
+        //         e.stopPropagation();
+        //     },
+        //     show: ['admin', 'collaborator', 'member'],
+        // },
         {
             label: 'Delete',
             icon: <Trash2 size={16} />,
             className: 'text-red-500 font-medium',
             onClick: (e: React.MouseEvent) => {
                 e.stopPropagation();
+                setIsDeleteModalOpen(true);
             },
             show: ['admin', 'collaborator'],
         },
@@ -523,6 +557,63 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
                     router.replace('/dashboard/library');
                 }}
             />
+
+            <DuplicateQuizModal
+                isOpen={isDuplicateModalOpen}
+                onOpenChange={setIsDuplicateModalOpen}
+                quizId={quizId}
+                quizTitle={quiz.title}
+                onSuccess={() => {
+                    // refresh logic handled by mutation invalidation
+                }}
+            />
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                title="Delete Quiz"
+                description="Are you sure you want to delete this quiz? This action cannot be undone."
+                confirmText="Delete"
+                confirmButtonClass="bg-red-500 hover:bg-red-600 text-white"
+                onConfirm={handleDelete}
+                isLoading={deleteQuiz.isPending}
+            />
+
+            {user && (
+                <QuizManageAccessModal
+                    isOpen={isManageAccessModalOpen}
+                    onOpenChange={setIsManageAccessModalOpen}
+                    quizId={quizId}
+                    currentUserId={user._id || ''}
+                    owner={
+                        isOwner
+                            ? {
+                                _id: user._id,
+                                name: user.name || 'Me',
+                                email: user.email,
+                                avatar: user.profileImage,
+                            }
+                            : {
+                                _id: typeof quiz.owner === 'object' ? (quiz.owner as any)._id : quiz.owner,
+                                name: typeof quiz.owner === 'object' ? (quiz.owner as any).name : 'Unknown',
+                                email: typeof quiz.owner === 'object' ? (quiz.owner as any).email : '',
+                                avatar: typeof quiz.owner === 'object' ? (quiz.owner as any).profileImage : undefined,
+                            }
+                    }
+                    members={(quiz.sharedWith || []).map((share: any) => {
+                        const memberUser = typeof share.user === 'object' ? share.user : {};
+                        return {
+                            _id: memberUser._id || share.user, // Fallback to ID if not populated
+                            name: memberUser.name || 'Unknown',
+                            email: memberUser.email || '',
+                            avatar: memberUser.profileImage,
+                            role: share.accessLevel === 'admin' ? 'collaborator' : share.accessLevel
+                        };
+                    })}
+                    publicAccess={quiz.publicAccess === 'public' ? 'public' : 'restricted'}
+                    userAccessLevel={accessLevel as any}
+                />
+            )}
         </div>
     );
 };

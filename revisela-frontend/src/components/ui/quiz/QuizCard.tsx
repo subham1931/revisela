@@ -172,14 +172,14 @@ const QuizCard: React.FC<QuizCardProps> = ({
             setMoveModalOpen(true);
           },
         },
-        {
-          label: 'Merge',
-          icon: <Merge size={16} />,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            setMoveModalOpen(true);
-          },
-        },
+        // {
+        //   label: 'Merge',
+        //   icon: <Merge size={16} />,
+        //   onClick: (e: React.MouseEvent) => {
+        //     e.stopPropagation();
+        //     setMoveModalOpen(true);
+        //   },
+        // },
         {
           label: 'Delete',
           icon: <Trash2 size={16} />,

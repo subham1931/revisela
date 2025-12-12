@@ -75,7 +75,7 @@ const FilteredFolderExplorer = ({
 
           <div className="flex items-center text-sm text-gray-600">
             <p className="text-md font-bold text-black">
-              Move “{folderName}” to: 
+              Move “{folderName}” to:
             </p>
             {breadcrumbs.map((crumb, index) => (
               <React.Fragment key={index}>
@@ -84,11 +84,10 @@ const FilteredFolderExplorer = ({
                   onClick={() =>
                     navigateToFolder(crumb.id || undefined, crumb.name)
                   }
-                  className={`hover:text-teal-600 ${
-                    index === breadcrumbs.length - 1
+                  className={`hover:text-teal-600 ${index === breadcrumbs.length - 1
                       ? 'font-medium text-teal-700'
                       : ''
-                  }`}
+                    }`}
                 >
                   {crumb.name}
                 </button>
@@ -238,106 +237,106 @@ export const MoveFolderModal: React.FC<{
   onSuccess,
   folderName = 'Folder 1',
 }) => {
-  const [mode, setMode] = useState<'selectRoot' | 'library'>('selectRoot');
+    const [mode, setMode] = useState<'selectRoot' | 'library'>('selectRoot');
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) setMode('selectRoot');
-    onOpenChange(open);
-  };
+    const handleOpenChange = (open: boolean) => {
+      if (!open) setMode('selectRoot');
+      onOpenChange(open);
+    };
 
-  if (mode === 'selectRoot') {
-    return (
-      <Modal
-        isOpen={isOpen}
-        onOpenChange={handleOpenChange}
-        title="Move"
-        icon={<FolderSymlink size={20} />}
-        contentClassName="max-w-sm"
-        showCloseButton
-      >
-        <div className="my-2">
-          <p className="text-md font-bold text-black mb-3">
-            Move “{folderName}” to:
-          </p>
+    if (mode === 'selectRoot') {
+      return (
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={handleOpenChange}
+          title="Move"
+          icon={<FolderSymlink size={20} />}
+          contentClassName="max-w-sm"
+          showCloseButton
+        >
+          <div className="my-2">
+            <p className="text-md font-bold text-black mb-3">
+              Move “{folderName}” to:
+            </p>
 
-          <div className="flex flex-col ">
-            {/* My Library */}
-            <button
-              onClick={() => setMode('library')}
-              className="group flex items-center justify-between px-3 py-3 hover:bg-[#ACACAC33]/20 rounded transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <FolderClosed
+            <div className="flex flex-col ">
+              {/* My Library */}
+              <button
+                onClick={() => setMode('library')}
+                className="group flex items-center justify-between px-3 py-3 hover:bg-[#ACACAC33]/20 rounded transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <FolderClosed
+                    size={18}
+                    className="text-black group-hover:text-[#0890A8] transition-colors"
+                  />
+                  <span className="font-medium text-black group-hover:text-[#0890A8] transition-colors">
+                    My Library
+                  </span>
+                </div>
+                <ArrowRight
                   size={18}
-                  className="text-black group-hover:text-[#0890A8] transition-colors"
+                  className="text-gray-400 group-hover:text-[#0890A8] transition-colors"
                 />
-                <span className="font-medium text-black group-hover:text-[#0890A8] transition-colors">
-                  My Library
-                </span>
-              </div>
-              <ArrowRight
-                size={18}
-                className="text-gray-400 group-hover:text-[#0890A8] transition-colors"
-              />
-            </button>
+              </button>
 
-            {/* Shared With Me (you can enable later) */}
-            <button
-              disabled
-              className="group flex items-center justify-between px-3 py-3 text-black rounded hover:bg-gray-50 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              <div className="flex items-center gap-2">
-                <Users
+              {/* Shared With Me (you can enable later) */}
+              <button
+                disabled
+                className="group flex items-center justify-between px-3 py-3 text-black rounded hover:bg-gray-50 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center gap-2">
+                  <Users
+                    size={18}
+                    className="text-black group-hover:text-[#0890A8] transition-colors"
+                  />
+                  <span className="font-medium text-black group-hover:text-[#0890A8] transition-colors">
+                    Shared With Me
+                  </span>
+                </div>
+                <ArrowRight
                   size={18}
-                  className="text-black group-hover:text-[#0890A8] transition-colors"
+                  className="text-gray-400 group-hover:text-[#0890A8] transition-colors"
                 />
-                <span className="font-medium text-black group-hover:text-[#0890A8] transition-colors">
-                  Shared With Me
-                </span>
-              </div>
-              <ArrowRight
-                size={18}
-                className="text-gray-400 group-hover:text-[#0890A8] transition-colors"
-              />
-            </button>
+              </button>
 
-            <button
-              disabled
-              className="flex items-center justify-between px-3 py-3 text-gray-400 cursor-not-allowed rounded"
-            >
-              <div className="flex items-center gap-2">
-                <Folder size={18} className="text-green-600" />
-                <span className="font-medium">Maths Class UCLA</span>
-              </div>
-              <ArrowRight size={18} />
-            </button>
+              <button
+                disabled
+                className="flex items-center justify-between px-3 py-3 text-gray-400 cursor-not-allowed rounded"
+              >
+                <div className="flex items-center gap-2">
+                  <Folder size={18} className="text-green-600" />
+                  <span className="font-medium">Maths Class UCLA</span>
+                </div>
+                <ArrowRight size={18} />
+              </button>
+            </div>
           </div>
-        </div>
-      </Modal>
-    );
-  }
+        </Modal>
+      );
+    }
 
-  if (mode === 'library') {
-    return (
-      <Modal
-        isOpen={isOpen}
-        onOpenChange={handleOpenChange}
-        title="Move"
-        icon={<FolderSymlink size={20} />}
-        contentClassName="max-w-3xl"
-        showCloseButton
-      >
-        <FolderProvider rootName="My Library" rootPath="/folders">
-          <MoveFolderContent
-            folderId={folderId}
-            onOpenChange={onOpenChange}
-            onSuccess={onSuccess}
-            folderName={folderName}
-          />
-        </FolderProvider>
-      </Modal>
-    );
-  }
+    if (mode === 'library') {
+      return (
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={handleOpenChange}
+          title="Move"
+          icon={<FolderSymlink size={20} />}
+          contentClassName="max-w-3xl"
+          showCloseButton
+        >
+          <FolderProvider rootName="My Library" rootPath="/folders" enableRouting={false}>
+            <MoveFolderContent
+              folderId={folderId}
+              onOpenChange={onOpenChange}
+              onSuccess={onSuccess}
+              folderName={folderName}
+            />
+          </FolderProvider>
+        </Modal>
+      );
+    }
 
-  return null;
-};
+    return null;
+  };

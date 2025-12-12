@@ -76,8 +76,8 @@ const QuizMoveFolderExplorer = ({
                                     navigateToFolder(crumb.id || undefined, crumb.name)
                                 }
                                 className={`hover:text-teal-600 ${index === breadcrumbs.length - 1
-                                        ? 'font-medium text-teal-700'
-                                        : ''
+                                    ? 'font-medium text-teal-700'
+                                    : ''
                                     }`}
                             >
                                 {crumb.name}
@@ -296,7 +296,7 @@ export const MoveQuizModal: React.FC<{
                     contentClassName="max-w-3xl"
                     showCloseButton
                 >
-                    <FolderProvider rootName="My Library" rootPath="/folders">
+                    <FolderProvider rootName="My Library" rootPath="/folders" enableRouting={false}>
                         <MoveQuizContent
                             quizId={quizId}
                             quizTitle={quizTitle}
