@@ -43,6 +43,7 @@ export interface QuizCardProps {
   isInTrash?: boolean;
   isClass?: boolean;
   isShared?: boolean;
+  hideActions?: boolean;
   parentRoute?: string;
   onDelete?: (id: string) => void;
   onRestore?: (id: string) => void;
@@ -60,6 +61,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
   isInTrash = false,
   isClass = false,
   isShared = false,
+  hideActions = false,
   parentRoute = 'dashboard',
   onDelete,
   onRestore,
@@ -193,8 +195,9 @@ const QuizCard: React.FC<QuizCardProps> = ({
 
   const handleCardClick = () => {
     if (!id) return;
-    if (!isClass && parentRoute !== 'trash') {
-      router.push(`/${parentRoute}/${id}`);
+    if ((!isClass || parentRoute.includes('classes')) && parentRoute !== 'trash') {
+      const route = parentRoute.startsWith('/') ? parentRoute : `/${parentRoute}`;
+      router.push(`${route}/${id}`);
     }
   };
 
@@ -212,7 +215,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
             className="flex items-center gap-2"
             onClick={(e) => e.stopPropagation()}
           >
-            {!isInTrash && isBookmarked && (
+            {!isInTrash && isBookmarked && !hideActions && (
               <Bookmark
                 size={18}
                 className="text-[#444444] fill-[#444444]"
@@ -228,7 +231,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
               />
             )}
 
-            <ActionDropdown items={dropdownItems} />
+            {!hideActions && <ActionDropdown items={dropdownItems} />}
           </div>
         </div>
 

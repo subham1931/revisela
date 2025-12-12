@@ -41,15 +41,22 @@ export const FolderProvider = ({
   initialFolderId,
   rootName,
   rootPath,
-  enableRouting = true
+  rootRedirectPath, // Optional redirect path for root breadcrumb
+  enableRouting = true,
+  usePathRouting = false,
+  customFolders,
+  customIsLoading
 }: {
   children: ReactNode;
   initialFolderId?: string;
   rootName: string;
   rootPath: string;
+  rootRedirectPath?: string;
   enableRouting?: boolean;
+  usePathRouting?: boolean;
+  customFolders?: any[];
+  customIsLoading?: boolean;
 }) => {
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -64,28 +71,56 @@ export const FolderProvider = ({
     safeInitial ? [{ id: safeInitial, name: '' }] : []
   );
 
-  // Sync state with URL changes (handle back/forward button)
+  // Sync state with URL changes (query params)
   useEffect(() => {
+    // If path routing is enabled, do NOT sync from searchParams (we rely on props/initialId updating)
+    if (usePathRouting) return;
+
+    if (!shouldRoute) return;
+
     const paramId = searchParams.get('folderId');
     const newId = paramId || undefined;
 
-    // If routing is disabled, ignore URL changes for syncing state
-    // (This prevents the modal from syncing to the URL if the URL somehow changes)
-    if (!shouldRoute) return;
-
     if (newId !== currentFolderId) {
       setCurrentFolderId(newId);
-      // Note: complex history sync might be needed here, but basic ID sync is crucial
     }
-  }, [searchParams]);
+  }, [searchParams, shouldRoute, usePathRouting]);
 
-  const { data: folders, isLoading } = useApiFolder(undefined);
+  // Sync state with prop changes (for path-based routing)
+  useEffect(() => {
+    if (usePathRouting && initialFolderId !== currentFolderId) {
+      // When using path routing, the parent component passes the new ID via initialFolderId
+      const safeId = initialFolderId && initialFolderId.trim() !== '' ? initialFolderId : undefined;
+      setCurrentFolderId(safeId);
+    }
+  }, [initialFolderId, usePathRouting]);
+
+  const { data: apiFolders, isLoading: apiLoading } = useApiFolder(undefined, {
+    enabled: !customFolders // Only fetch if no custom folders provided
+  });
+
+  const folders = customFolders || apiFolders || [];
+  const isLoading = customIsLoading !== undefined ? customIsLoading : apiLoading;
   // useEffect(()=>{
   //   console.log(folders)
   // },[folders])
 
   const { data: currentFolder, isLoading: folderDetailsLoading } =
     useFolderDetails(currentFolderId, currentFolderId !== undefined);
+
+  // Update history name when folder details load (for direct navigation/refresh)
+  useEffect(() => {
+    if (currentFolderId && currentFolder && currentFolder._id === currentFolderId) {
+      setFolderHistory((prev) => {
+        return prev.map((f) => {
+          if (f.id === currentFolderId && (!f.name || f.name === '')) {
+            return { ...f, name: currentFolder.name };
+          }
+          return f;
+        });
+      });
+    }
+  }, [currentFolder, currentFolderId]);
 
   const subFolders = currentFolder?.subFolders || [];
 
@@ -101,9 +136,18 @@ export const FolderProvider = ({
     // Update URL only if routing is enabled
     if (shouldRoute) {
       if (safeId) {
-        router.push(`${rootPath}?folderId=${safeId}`);
+        if (usePathRouting) {
+          router.push(`${rootPath}/${safeId}`); // Path based: /folders/123
+        } else {
+          router.push(`${rootPath}?folderId=${safeId}`); // Query based: ?folderId=123
+        }
       } else {
-        router.push(rootPath);
+        // Navigating to root
+        if (rootRedirectPath) {
+          router.push(rootRedirectPath);
+        } else {
+          router.push(rootPath);
+        }
       }
     }
 
@@ -120,7 +164,7 @@ export const FolderProvider = ({
       if (idx >= 0) return prev.slice(0, idx + 1);
       return [...prev, { id: safeId, name: name ?? '' }];
     });
-  }, [rootPath, router, shouldRoute]);
+  }, [rootPath, rootRedirectPath, router, shouldRoute, usePathRouting]);
 
   const navigateUp = useCallback(() => {
     if (folderHistory.length === 0) {
@@ -141,10 +185,14 @@ export const FolderProvider = ({
       const parentId = newHist[newHist.length - 1].id;
       setCurrentFolderId(parentId);
       if (shouldRoute) {
-        router.push(`${rootPath}?folderId=${parentId}`);
+        if (usePathRouting) {
+          router.push(`${rootPath}/${parentId}`);
+        } else {
+          router.push(`${rootPath}?folderId=${parentId}`);
+        }
       }
     }
-  }, [folderHistory, rootPath, router, shouldRoute]);
+  }, [folderHistory, rootPath, router, shouldRoute, usePathRouting]);
 
   const breadcrumbs: BreadcrumbItem[] = [
     { id: undefined, name: rootName, path: rootPath },

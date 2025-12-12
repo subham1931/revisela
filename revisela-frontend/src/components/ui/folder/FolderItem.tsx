@@ -47,6 +47,8 @@ export interface FolderItemProps {
   handleDeleteInParent?: boolean;
   isBookmarked?: boolean;
   isShared?: boolean; // ✅ indicates if folder is shared with others
+  isClass?: boolean;
+  hideActions?: boolean;
 }
 
 const FolderItem: React.FC<FolderItemProps> = ({
@@ -64,6 +66,8 @@ const FolderItem: React.FC<FolderItemProps> = ({
   handleDeleteInParent = false,
   isBookmarked = false,
   isShared = false,
+  isClass = false,
+  hideActions = false,
 }) => {
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
@@ -167,7 +171,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
         },
       },
     ]
-    : isShared
+    : isClass
       ? [
         {
           label: 'Duplicate',
@@ -187,88 +191,109 @@ const FolderItem: React.FC<FolderItemProps> = ({
           ),
           onClick: handleBookmark,
         },
-        {
-          label: 'Move',
-          icon: <FolderOpen size={16} />,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            onMove?.(id);
-          },
-        },
-        {
-          label: 'Delete',
-          icon: <Trash2 size={16} />,
-          className: 'text-red-500 font-medium',
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            setRemoveModalOpen(true);
-          },
-        },
       ]
-      : [
-        {
-          label: 'Rename',
-          icon: <Pencil size={16} />,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            setRenameValue(name);
-            setRenameModalOpen(true);
+      : isShared
+        ? [
+          {
+            label: 'Duplicate',
+            icon: <Copy size={16} />,
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              setDuplicateModalOpen(true);
+            },
           },
-        },
-        {
-          label: 'Duplicate',
-          icon: <Copy size={16} />,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            setDuplicateModalOpen(true);
+          {
+            label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
+            icon: (
+              <Bookmark
+                size={16}
+                className={isBookmarked ? 'fill-[#444444] text-[#444444]' : ''}
+              />
+            ),
+            onClick: handleBookmark,
           },
-        },
-        {
-          label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
-          icon: (
-            <Bookmark
-              size={16}
-              className={isBookmarked ? 'fill-[#444444] text-[#444444]' : ''}
-            />
-          ),
-          onClick: handleBookmark,
-        },
-        {
-          label: 'Manage Access',
-          icon: <LockKeyholeOpen size={16} />,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            if (onManageAccess) {
-              onManageAccess(id);
-            } else {
-              setManageAccessModalOpen(true);
-            }
+          {
+            label: 'Move',
+            icon: <FolderOpen size={16} />,
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              onMove?.(id);
+            },
           },
-        },
-        {
-          label: 'Move',
-          icon: <FolderSymlink size={16} />,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            if (onMove) {
-              // trigger parent grid’s MoveFolderModal
-              onMove(id);
-            } else {
-              // fallback legacy modal if parent didn’t supply onMove
-              setMoveModalOpen(true);
-            }
+          {
+            label: 'Delete',
+            icon: <Trash2 size={16} />,
+            className: 'text-red-500 font-medium',
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              setRemoveModalOpen(true);
+            },
           },
-        },
-        {
-          label: 'Delete',
-          icon: <Trash2 size={16} />,
-          className: 'text-red-500 font-medium',
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            setRemoveModalOpen(true);
+        ]
+        : [
+          {
+            label: 'Rename',
+            icon: <Pencil size={16} />,
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              setRenameValue(name);
+              setRenameModalOpen(true);
+            },
           },
-        },
-      ];
+          {
+            label: 'Duplicate',
+            icon: <Copy size={16} />,
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              setDuplicateModalOpen(true);
+            },
+          },
+          {
+            label: isBookmarked ? 'Undo Bookmark' : 'Bookmark',
+            icon: (
+              <Bookmark
+                size={16}
+                className={isBookmarked ? 'fill-[#444444] text-[#444444]' : ''}
+              />
+            ),
+            onClick: handleBookmark,
+          },
+          {
+            label: 'Manage Access',
+            icon: <LockKeyholeOpen size={16} />,
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (onManageAccess) {
+                onManageAccess(id);
+              } else {
+                setManageAccessModalOpen(true);
+              }
+            },
+          },
+          {
+            label: 'Move',
+            icon: <FolderSymlink size={16} />,
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (onMove) {
+                // trigger parent grid’s MoveFolderModal
+                onMove(id);
+              } else {
+                // fallback legacy modal if parent didn’t supply onMove
+                setMoveModalOpen(true);
+              }
+            },
+          },
+          {
+            label: 'Delete',
+            icon: <Trash2 size={16} />,
+            className: 'text-red-500 font-medium',
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              setRemoveModalOpen(true);
+            },
+          },
+        ];
 
 
   return (
@@ -285,7 +310,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
           <span className="text-[#444444] truncate">{name}</span>
         </div>
         <div className="flex items-center gap-2">
-          {!isInTrash && isBookmarked && (
+          {!isInTrash && isBookmarked && !hideActions && (
             <Bookmark
               size={18}
               className="text-[#444444] fill-[#444444]"
@@ -301,7 +326,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
             />
           )}
 
-          <ActionDropdown items={dropdownItems} />
+          {!hideActions && <ActionDropdown items={dropdownItems} />}
         </div>
       </div>
 

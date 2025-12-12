@@ -305,7 +305,9 @@ export default function ClassPage() {
                       id={folder._id}
                       name={folder.name}
                       isBookmarked={true}
-                      onClick={() => setFolders(folder.name)}
+                      onClick={() => router.push(`/dashboard/classes/${classId}/folders/${folder._id}`)}
+                      isClass={true}
+                      hideActions={!isOwner && !isCollaborator}
                     />
                   ))}
                 </div>
@@ -331,6 +333,7 @@ export default function ClassPage() {
                       }}
                       isClass={true}
                       parentRoute={`dashboard/classes/${classId}/quizzes`}
+                      hideActions={!isOwner && !isCollaborator}
                     />
                   ))}
                 </div>

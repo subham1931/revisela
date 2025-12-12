@@ -47,7 +47,7 @@ interface FolderApiResponse {
 }
 
 // Fetch user's folders
-export const useFolders = (parentId?: string) => {
+export const useFolders = (parentId?: string, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: QUERY_KEYS.FOLDERS.byParent(parentId),
     queryFn: async () => {

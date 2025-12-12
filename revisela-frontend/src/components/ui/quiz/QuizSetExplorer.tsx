@@ -29,9 +29,16 @@ const QuizSetExplorer: React.FC<QuizSetExplorerProps> = ({
   const handleQuizClick = useCallback(
     (id: string, quizTitle: string) => {
       if (onQuizClick) return onQuizClick(id, quizTitle);
-      router.push(ROUTES.DASHBOARD.QUIZ_SETS.DETAIL(id));
+
+      if (parentRoute) {
+        // Ensure we don't end up with double slashes if parentRoute already starts with /
+        const route = parentRoute.startsWith('/') ? parentRoute : `/${parentRoute}`;
+        router.push(`${route}/${id}`);
+      } else {
+        router.push(ROUTES.DASHBOARD.QUIZ_SETS.DETAIL(id));
+      }
     },
-    [onQuizClick, router]
+    [onQuizClick, router, parentRoute]
   );
 
   // Notify parent about loaded data

@@ -285,12 +285,11 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ quizId, initialEditMode = false
                         </>
                     ) : (
                         <div className="flex items-center space-x-2">
-                            <button
-                                type="button"
-                                className="border border-gray-300 rounded-md h-10 px-4 text-sm font-medium text-gray-700 hover:text-gray-900 hover:border-[#0890A8]"
+                            <div
+                                className="border border-gray-300 rounded-md h-10 px-4 text-sm font-medium text-gray-700 hover:text-gray-900 hover:border-[#0890A8] flex items-center justify-center"
                             >
                                 <ActionDropdown items={dropdownItems} triggerIcon={<SlidersHorizontal className="h-4 w-4" />} />
-                            </button>
+                            </div>
 
                             <button
                                 onClick={handleRevise}
