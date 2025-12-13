@@ -163,6 +163,15 @@ let ClassesController = class ClassesController {
     async restoreClass(id, req) {
         return this.classesService.restoreClass(id, req.user.userId);
     }
+    async requestJoin(id, req) {
+        return this.classesService.requestJoin(id, req.user.userId);
+    }
+    async approveRequest(id, requestingUserId, req) {
+        return this.classesService.approveRequest(id, requestingUserId, req.user.userId);
+    }
+    async rejectRequest(id, requestingUserId, req) {
+        return this.classesService.rejectRequest(id, requestingUserId, req.user.userId);
+    }
 };
 exports.ClassesController = ClassesController;
 __decorate([
@@ -320,6 +329,38 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ClassesController.prototype, "restoreClass", null);
+__decorate([
+    (0, common_1.Post)(':id/request-join'),
+    (0, auth_decorator_1.Auth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ClassesController.prototype, "requestJoin", null);
+__decorate([
+    (0, common_1.Post)(':id/requests/:userId/approve'),
+    (0, auth_decorator_1.Auth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('userId')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], ClassesController.prototype, "approveRequest", null);
+__decorate([
+    (0, common_1.Post)(':id/requests/:userId/reject'),
+    (0, auth_decorator_1.Auth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('userId')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], ClassesController.prototype, "rejectRequest", null);
 exports.ClassesController = ClassesController = __decorate([
     (0, common_1.Controller)('classes'),
     __metadata("design:paramtypes", [classes_service_1.ClassesService])

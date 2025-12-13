@@ -32,6 +32,7 @@ let Class = class Class {
     classCode;
     owner;
     members;
+    joinRequests;
     quizzes;
     folders;
     publicAccess;
@@ -74,6 +75,15 @@ __decorate([
     ]),
     __metadata("design:type", Array)
 ], Class.prototype, "members", void 0);
+__decorate([
+    (0, mongoose_1.Prop)([
+        {
+            user: { type: mongoose_2.Schema.Types.ObjectId, ref: 'User' },
+            requestedAt: { type: Date, default: Date.now },
+        },
+    ]),
+    __metadata("design:type", Array)
+], Class.prototype, "joinRequests", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Schema.Types.ObjectId, ref: 'Quiz' }] }),
     __metadata("design:type", Array)

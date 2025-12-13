@@ -87,6 +87,7 @@ let ClassesService = class ClassesService {
             .findById(id)
             .populate('owner', 'name username email')
             .populate('members.user', 'name username email')
+            .populate('joinRequests.user', 'name username email profileImage')
             .populate('quizzes', 'title description isPublic createdBy')
             .populate('folders', 'name description owner')
             .exec();
@@ -94,7 +95,21 @@ let ClassesService = class ClassesService {
             throw new common_1.HttpException('Class not found', common_1.HttpStatus.NOT_FOUND);
         }
         if (userId && !this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.MEMBER)) {
-            throw new common_1.HttpException('You do not have access to this class', common_1.HttpStatus.FORBIDDEN);
+            // Return limited data for non-members so they can see the "Request to Join" page
+            const limitedData = this.addUserMetadata(classDoc, userId);
+            limitedData.folders = [];
+            limitedData.quizzes = [];
+            limitedData.members = [];
+
+            // Filter joinRequests to only show current user's request
+            if (limitedData.joinRequests && Array.isArray(limitedData.joinRequests)) {
+                limitedData.joinRequests = limitedData.joinRequests.filter(req => {
+                    const reqUserId = req.user._id ? req.user._id.toString() : req.user.toString();
+                    return reqUserId === userId;
+                });
+            }
+
+            return limitedData;
         }
         return userId
             ? this.addUserMetadata(classDoc, userId)
@@ -111,6 +126,86 @@ let ClassesService = class ClassesService {
         }
         return classDoc;
     }
+    async requestJoin(id, userId) {
+        const classDoc = await this.classModel.findById(id);
+        if (!classDoc) {
+            throw new common_1.HttpException('Class not found', common_1.HttpStatus.NOT_FOUND);
+        }
+
+        // Check if already a member
+        const isMember = classDoc.members.some((member) => member.user.toString() === userId);
+        if (isMember) {
+            throw new common_1.HttpException('You are already a member of this class', common_1.HttpStatus.BAD_REQUEST);
+        }
+
+        // Check if owner
+        const ownerId = typeof classDoc.owner === 'string'
+            ? classDoc.owner
+            : classDoc.owner._id?.toString() || classDoc.owner.toString();
+        if (ownerId === userId) {
+            throw new common_1.HttpException('You allow own this class', common_1.HttpStatus.BAD_REQUEST);
+        }
+
+        // Check if already requested
+        const hasRequested = classDoc.joinRequests?.some((req) => req.user.toString() === userId);
+        if (hasRequested) {
+            throw new common_1.HttpException('Request already sent', common_1.HttpStatus.BAD_REQUEST);
+        }
+
+        await this.classModel.findByIdAndUpdate(id, {
+            $push: {
+                joinRequests: {
+                    user: userId,
+                    requestedAt: new Date(),
+                }
+            }
+        });
+
+        return { message: 'Request sent successfully' };
+    }
+
+    async approveRequest(id, requestingUserId, userId) {
+        const classDoc = await this.findOne(id, userId);
+        if (!this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.ADMIN)) {
+            throw new common_1.HttpException('You do not have permission to approve requests', common_1.HttpStatus.FORBIDDEN);
+        }
+
+        // Remove from requests
+        await this.classModel.updateOne(
+            { _id: id },
+            { $pull: { joinRequests: { user: requestingUserId } } }
+        );
+
+        // Add to members
+        await this.classModel.updateOne(
+            { _id: id },
+            {
+                $push: {
+                    members: {
+                        user: requestingUserId,
+                        accessLevel: class_schema_1.ClassAccessLevel.MEMBER,
+                        joinedAt: new Date()
+                    }
+                }
+            }
+        );
+        return this.findOne(id, userId);
+    }
+
+    async rejectRequest(id, requestingUserId, userId) {
+        const classDoc = await this.findOne(id, userId);
+        if (!this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.ADMIN)) {
+            throw new common_1.HttpException('You do not have permission to reject requests', common_1.HttpStatus.FORBIDDEN);
+        }
+
+        await this.classModel.updateOne(
+            { _id: id },
+            { $pull: { joinRequests: { user: requestingUserId } } }
+        );
+
+        return this.findOne(id, userId);
+    }
+
     async update(id, updateClassDto, userId) {
         const classDoc = await this.findOne(id, userId);
         if (!this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.ADMIN)) {
@@ -399,11 +494,7 @@ let ClassesService = class ClassesService {
                 { name: { $regex: searchRegex } },
                 { classCode: { $regex: searchRegex } }
             ],
-            isArchived: false,
-            $or: [
-                { owner: userId },
-                { 'members.user': userId }
-            ]
+            isArchived: false
         }).limit(20).exec();
     }
 };
