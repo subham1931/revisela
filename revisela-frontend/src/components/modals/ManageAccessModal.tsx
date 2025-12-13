@@ -4,10 +4,13 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
 import {
-  ChevronDown,
-  Info,
   Link as LinkIcon,
   LockKeyholeOpen,
+  Check,
+  X,
+  ArrowLeft,
+  ChevronDown,
+  Info,
 } from 'lucide-react';
 
 import {
@@ -15,6 +18,8 @@ import {
   useRemoveClassMember,
   useUpdateMemberAccess,
   useUpdateClassPublicAccess,
+  useApproveJoinRequest,
+  useRejectJoinRequest,
 } from '@/services/features/classes';
 
 import {
@@ -43,6 +48,7 @@ interface ManageAccessModalProps {
   publicAccess?: 'restricted' | 'edit' | 'view_only' | 'none' | 'public'; // Combined types
   userAccessLevel?: 'owner' | 'collaborator' | 'member' | 'none' | 'admin';
   resourceType: 'class' | 'folder';
+  joinRequests?: any[]; // Re-added
 }
 
 const ManageAccessModal: React.FC<ManageAccessModalProps> = ({
@@ -56,10 +62,29 @@ const ManageAccessModal: React.FC<ManageAccessModalProps> = ({
   userAccessLevel,
   publicAccess,
   resourceType,
+  joinRequests = [],
 }) => {
   const [peopleWithAccess, setPeopleWithAccess] = useState<AccessUser[]>([]);
   const [emailsInput, setEmailsInput] = useState('');
+  const [view, setView] = useState<'main' | 'review'>('main');
   const { toast } = useToast();
+
+  const approveRequestMutation = useApproveJoinRequest();
+  const rejectRequestMutation = useRejectJoinRequest();
+
+  const handleApprove = (requestingUserId: string) => {
+    approveRequestMutation.mutate({ classId: resourceId, userId: requestingUserId }, {
+      onSuccess: () => toast({ title: 'Success', description: 'Request approved', type: 'success' }),
+      onError: () => toast({ title: 'Error', description: 'Failed to approve', type: 'error' })
+    });
+  }
+
+  const handleReject = (requestingUserId: string) => {
+    rejectRequestMutation.mutate({ classId: resourceId, userId: requestingUserId }, {
+      onSuccess: () => toast({ title: 'Success', description: 'Request rejected', type: 'success' }),
+      onError: () => toast({ title: 'Error', description: 'Failed to reject', type: 'error' })
+    });
+  }
 
   // Class Mutations
   const removeClassMemberMutation = useRemoveClassMember();
@@ -256,8 +281,60 @@ const ManageAccessModal: React.FC<ManageAccessModalProps> = ({
       icon={<LockKeyholeOpen size={20} />}
       contentClassName="max-w-md"
     >
-      {userAccessLevel === 'owner' ? (
+      {view === 'review' ? (
+        <div className="space-y-4">
+          <h3 className="text-base font-bold text-gray-800">Review Class Requests</h3>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+            {joinRequests.map((req) => (
+              <div key={req.user._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden relative">
+                    {req.user.profileImage ? (
+                      <Image src={req.user.profileImage} fill className="object-cover" alt={req.user.name} />
+                    ) : (
+                      <span className="flex items-center justify-center w-full h-full text-sm font-bold text-gray-500">
+                        {req.user.name?.charAt(0)}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">{req.user.name}</p>
+                    <p className="text-xs text-gray-500">{req.user.email}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => handleReject(req.user._id)} className="p-2 hover:bg-gray-200 rounded-full text-red-500 transition-colors">
+                    <X size={20} />
+                  </button>
+                  <button onClick={() => handleApprove(req.user._id)} className="p-2 hover:bg-gray-200 rounded-full bg-gray-200/50 text-green-600 transition-colors">
+                    <Check size={20} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-6 pt-2 border-t border-gray-100">
+            <Button variant="outline" onClick={() => setView('main')} className="flex items-center gap-2 border-gray-300">
+              <ArrowLeft size={16} /> Go Back
+            </Button>
+            <Button onClick={() => onOpenChange(false)} className="bg-[#0890A8] text-white hover:bg-[#077d92]">
+              Done
+            </Button>
+          </div>
+        </div>
+      ) : userAccessLevel === 'owner' ? (
         <>
+          {resourceType === 'class' && joinRequests.length > 0 && (
+            <div className="flex flex-col gap-2 my-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-bold text-gray-800">Review Class Requests</h3>
+                <Button variant="outline" className="border-gray-300 h-8 text-xs font-semibold" onClick={() => setView('review')}>
+                  Review
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500">{joinRequests.length} users have requested to join this class.</p>
+            </div>
+          )}
           {/* Share Access */}
           <div className="space-y-2 my-4">
             <p className="text-sm font-semibold">Share Access</p>

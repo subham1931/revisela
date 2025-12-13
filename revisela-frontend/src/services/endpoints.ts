@@ -432,6 +432,21 @@ export const CLASS_ENDPOINTS = {
     url: `${API_BASE_URL}/classes/invitations/pending`,
     method: 'GET',
   } as EndpointConfig,
+  REQUEST_JOIN_CLASS: (classId: string) =>
+    ({
+      url: `${API_BASE_URL}/classes/${classId}/request-join`,
+      method: 'POST',
+    }) as EndpointConfig,
+  APPROVE_JOIN_REQUEST: (classId: string, userId: string) =>
+    ({
+      url: `${API_BASE_URL}/classes/${classId}/requests/${userId}/approve`,
+      method: 'POST',
+    }) as EndpointConfig,
+  REJECT_JOIN_REQUEST: (classId: string, userId: string) =>
+    ({
+      url: `${API_BASE_URL}/classes/${classId}/requests/${userId}/reject`,
+      method: 'POST',
+    }) as EndpointConfig,
 };
 
 // -----------------------------------------------------------------------------

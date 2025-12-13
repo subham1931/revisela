@@ -21,6 +21,7 @@ import {
   useLeaveClass,
   useRemoveClassMember,
   useUpdateMemberAccess,
+  useRequestJoinClass,
 } from '@/services/features/classes';
 
 import { ConfirmationModal, ManageAccessModal } from '@/components/modals';
@@ -44,6 +45,7 @@ export default function ClassPage() {
   const removeMemberMutation = useRemoveClassMember();
   const { mutate: updateAccess } = useUpdateMemberAccess();
   const { mutate: leaveClass, isPending: isLeaving } = useLeaveClass();
+  const { mutate: requestJoin, isPending: isRequesting } = useRequestJoinClass();
 
   const [activeTab, setActiveTab] = useState<'Resources' | 'Members'>(
     'Resources'
@@ -53,6 +55,7 @@ export default function ClassPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [isManageAccessModalOpen, setIsManageAccessModalOpen] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
 
   const {
     data: classData,
@@ -82,6 +85,9 @@ export default function ClassPage() {
     if (classData) {
       setFolders(classData.folders || []);
       setQuizzes(classData.quizzes || []);
+      if (classData.joinRequests && classData.joinRequests.length > 0) {
+        setRequestSent(true);
+      }
     }
   }, [classData]);
 
@@ -168,6 +174,84 @@ export default function ClassPage() {
           <Button onClick={handleBack} className="mt-4" variant="outline">
             Back to Classes
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has access to the class
+  if (!userAccessLevel || userAccessLevel === 'none') {
+    return (
+      <div className="bg-white min-h-[calc(100vh-100px)] flex flex-col items-start px-20">
+        {/* Header Section */}
+        <div className="w-full flex justify-between items-start mb-20">
+          <div>
+            <h1 className="text-3xl font-bold text-[#058F3A] mb-2">
+              {classData.name}
+            </h1>
+            {classData.orgName && (
+              <div className="flex items-center gap-2 text-gray-600 font-medium">
+                <University size={20} />
+                <span>{classData.orgName}</span>
+              </div>
+            )}
+          </div>
+          {classData.classCode && (
+            <span className="text-gray-500 italic font-medium">#{classData.classCode}</span>
+          )}
+        </div>
+
+        {/* Restricted Content */}
+        <div className="w-full flex-1 flex flex-col items-center justify-center -mt-20">
+          <div className="mb-6">
+            <Lock size={64} className="text-[#5F6368]" strokeWidth={1.5} />
+          </div>
+
+          <h2 className="text-xl font-semibold text-[#444444] mb-8 text-center">
+            Oops! This class is restricted for approved members only!
+          </h2>
+
+          {!requestSent ? (
+            <Button
+              variant="outline"
+              className="border-[#0890A8] text-[#0890A8] hover:bg-[#0890A8] hover:text-white px-8 py-2 h-auto text-base"
+              onClick={() => {
+                requestJoin(classId, {
+                  onSuccess: () => {
+                    setRequestSent(true);
+                    toast({
+                      title: 'Request Sent',
+                      description: 'Your request to join this class has been sent to the admin.',
+                      type: 'success',
+                    });
+                  },
+                  onError: (error: any) => {
+                    toast({
+                      title: 'Error',
+                      description: error.message || 'Failed to send request',
+                      type: 'error',
+                    });
+                  }
+                });
+              }}
+              disabled={isRequesting}
+            >
+              {isRequesting ? 'Sending...' : 'Request to join'}
+            </Button>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-sm text-gray-500">
+                You have already sent a request to join this class.
+              </p>
+              <Button
+                variant="outline"
+                className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 px-8 py-2 h-auto text-base"
+                onClick={() => setRequestSent(false)}
+              >
+                Cancel Request
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -445,6 +529,7 @@ export default function ClassPage() {
         currentUserId={currentUserId}
         publicAccess={classData?.publicAccess}
         userAccessLevel={userAccessLevel}
+        joinRequests={classData.joinRequests}
       />
     </div>
   );

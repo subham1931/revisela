@@ -39,6 +39,16 @@ interface Class {
   isOwner: boolean;
   userAccessLevel: 'owner' | 'admin' | 'collaborator' | 'member';
   memberCount: number;
+  joinRequests?: {
+    user: {
+      _id: string;
+      name: string;
+      email: string;
+      username?: string;
+      profileImage?: string;
+    };
+    requestedAt: string;
+  }[];
 }
 
 interface ClassInvitation {
@@ -129,6 +139,11 @@ export const useClass = (classId: string) => {
       return response.data!.data;
     },
     enabled: !!classId,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 403 Forbidden as we now return limited data or handle it in UI
+      if (error?.response?.status === 403 || error?.status === 403) return false;
+      return failureCount < 3;
+    },
   });
 };
 
@@ -626,3 +641,54 @@ export const usePendingInvitations = () => {
     },
   });
 };
+
+// Request to join class
+export const useRequestJoinClass = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (classId: string) => {
+      const response = await apiRequest(CLASS_ENDPOINTS.REQUEST_JOIN_CLASS(classId));
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      return response.data;
+    },
+    onSuccess: (_, classId) => {
+      queryClient.invalidateQueries({ queryKey: ['class', classId] });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+    },
+  });
+};
+
+// Approve join request
+export const useApproveJoinRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ classId, userId }: { classId: string; userId: string }) => {
+      const response = await apiRequest(CLASS_ENDPOINTS.APPROVE_JOIN_REQUEST(classId, userId));
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: (_, { classId }) => {
+      queryClient.invalidateQueries({ queryKey: ['class', classId] });
+    }
+  });
+}
+
+// Reject join request
+export const useRejectJoinRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ classId, userId }: { classId: string; userId: string }) => {
+      const response = await apiRequest(CLASS_ENDPOINTS.REJECT_JOIN_REQUEST(classId, userId));
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: (_, { classId }) => {
+      queryClient.invalidateQueries({ queryKey: ['class', classId] });
+    }
+  });
+}

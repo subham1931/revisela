@@ -74,8 +74,14 @@ const RootNavbar = () => {
   const handleCreateFolder = () => setIsFolderModalOpen(true);
   const handleCreateClass = () => router.push(ROUTES.DASHBOARD.CLASSES.CREATE);
 
-  // ✅ Debounce search effect (waits 400ms after user stops typing)
   const pathname = usePathname();
+
+  // Clear search query when navigating away from search page
+  useEffect(() => {
+    if (!pathname.includes('/dashboard/search')) {
+      setSearchQuery('');
+    }
+  }, [pathname]);
 
   // ✅ Debounce search effect (waits 400ms after user stops typing)
   useEffect(() => {
@@ -93,7 +99,8 @@ const RootNavbar = () => {
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [searchQuery, router, pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, router]);
 
   return (
     <>
