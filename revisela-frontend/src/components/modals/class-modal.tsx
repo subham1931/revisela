@@ -98,15 +98,35 @@ export const ClassModal: React.FC<ClassModalProps> = ({
   };
 
   const handleJoinClass = () => {
+    // 1. Check if it's a link
+    if (classLink) {
+      try {
+        const url = new URL(classLink);
+        // Check if it matches our class route structure
+        if (url.pathname.includes('/dashboard/classes/')) {
+          const pathId = url.pathname.split('/classes/')[1]?.split('/')[0];
+          if (pathId) {
+            // Redirect to class page -> User will see "Request to Join"
+            handleClose();
+            window.location.href = url.toString(); // or router.push(url.pathname) if available
+            return;
+          }
+        }
+      } catch (e) {
+        // Invalid URL, fall through
+      }
+    }
+
+    // 2. Check if it's a code
     const code =
       classCode ||
-      (classLink && classLink.split('/').pop()?.trim()) ||
+      (classLink && classLink.trim().length === 6 ? classLink.trim() : '') ||
       '';
 
     if (!code || code.length !== 6) {
       toast({
         title: 'Error',
-        description: 'Please enter a valid 6-digit class code or link',
+        description: 'Please enter a valid 6-digit class code or a valid class link',
         type: 'error',
       });
       return;

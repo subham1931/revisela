@@ -175,7 +175,7 @@ export default function LibraryPage() {
     >
       <FolderExplorer
         title="Folders"
-        renderContent={(currentFolderId) => {
+        renderContent={(currentFolderId, options) => {
           // ========================
           // ROOT MODE
           // ========================
@@ -196,9 +196,9 @@ export default function LibraryPage() {
                 </QuizSetProvider>
 
                 {/* REAL EMPTY STATE (ONLY ONE) */}
-                {rootLoaded && rootQuizCount === 0 && (
+                {rootLoaded && rootQuizCount === 0 && !options?.suppressQuizzes && (
                   <div className=" flex flex-col items-center justify-center h-[60vh] text-center text-gray-600">
-                    You don't have any folders yet...
+                    You don't have any items yet...
                   </div>
                 )}
               </section>

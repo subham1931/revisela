@@ -24,6 +24,7 @@ interface FolderGridProps {
   folderIcon?: React.ReactNode;
   className?: string;
   gridClassName?: string;
+  isClass?: boolean;
 }
 
 const FolderGrid: React.FC<FolderGridProps> = ({
@@ -35,6 +36,7 @@ const FolderGrid: React.FC<FolderGridProps> = ({
   folderIcon,
   className = '',
   gridClassName = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4',
+  isClass = false,
 }) => {
   // --- React Query mutation hook for rename ---
   const updateFolder = useUpdateFolder();
@@ -83,6 +85,7 @@ const FolderGrid: React.FC<FolderGridProps> = ({
                 onDelete={onFolderDelete}
                 onRename={handleFolderRename} // ✅ added this line
                 customIcon={folderIcon}
+                isClass={isClass}
               />
             );
           })}

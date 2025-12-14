@@ -88,7 +88,7 @@ let ClassesService = class ClassesService {
             .populate('owner', 'name username email')
             .populate('members.user', 'name username email')
             .populate('joinRequests.user', 'name username email profileImage')
-            .populate('quizzes', 'title description isPublic createdBy')
+            .populate('quizzes', 'title description isPublic createdBy bookmarkedBy')
             .populate('folders', 'name description owner')
             .exec();
         if (!classDoc) {
@@ -166,7 +166,7 @@ let ClassesService = class ClassesService {
 
     async approveRequest(id, requestingUserId, userId) {
         const classDoc = await this.findOne(id, userId);
-        if (!this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.ADMIN)) {
+        if (!this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.ADMIN) && requestingUserId !== userId) {
             throw new common_1.HttpException('You do not have permission to approve requests', common_1.HttpStatus.FORBIDDEN);
         }
 
@@ -194,7 +194,7 @@ let ClassesService = class ClassesService {
 
     async rejectRequest(id, requestingUserId, userId) {
         const classDoc = await this.findOne(id, userId);
-        if (!this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.ADMIN)) {
+        if (!this.hasAccess(classDoc, userId, class_schema_1.ClassAccessLevel.ADMIN) && String(requestingUserId) !== String(userId)) {
             throw new common_1.HttpException('You do not have permission to reject requests', common_1.HttpStatus.FORBIDDEN);
         }
 
@@ -479,8 +479,15 @@ let ClassesService = class ClassesService {
         else if (userMembership) {
             userAccessLevel = userMembership.accessLevel;
         }
+        const obj = classDoc.toObject();
+        if (obj.quizzes && Array.isArray(obj.quizzes)) {
+            obj.quizzes = obj.quizzes.map(quiz => {
+                const isBookmarked = quiz.bookmarkedBy && quiz.bookmarkedBy.some(id => id.toString() === userId);
+                return Object.assign(quiz, { isBookmarked });
+            });
+        }
         return {
-            ...classDoc.toObject(),
+            ...obj,
             isOwner,
             userAccessLevel,
             memberCount: classDoc.members.length,

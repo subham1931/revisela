@@ -432,6 +432,9 @@ export const useBookmarkQuiz = () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.QUIZZES.public });     // Public quizzes
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.QUIZZES.recent });     // Recent quizzes
       queryClient.invalidateQueries({ queryKey: ['quizzes', 'folder'] });         // Folder quizzes
+
+      // 3️⃣ Invalidate class queries (since they contain quizzes)
+      queryClient.invalidateQueries({ queryKey: ['class'] });
     },
   });
 };

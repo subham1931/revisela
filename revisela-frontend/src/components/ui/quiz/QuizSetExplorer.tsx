@@ -12,16 +12,18 @@ interface QuizSetExplorerProps {
   allowCreateQuiz?: boolean;
   onQuizClick?: (id: string, title: string) => void;
   onDataLoaded?: (count: number) => void;
-  hideEmptyState?: boolean;   // ⭐ NEW
+  hideEmptyState?: boolean;
   parentRoute?: string;
+  isClass?: boolean;
 }
 
 const QuizSetExplorer: React.FC<QuizSetExplorerProps> = ({
   title = 'Quiz Sets',
   onQuizClick,
   onDataLoaded,
-  hideEmptyState = false,     // ⭐ NEW DEFAULT
+  hideEmptyState = false,
   parentRoute,
+  isClass = false,
 }) => {
   const { quizzes, isLoading, deleteQuiz } = useQuizSets();
   const router = useRouter();
@@ -79,6 +81,7 @@ const QuizSetExplorer: React.FC<QuizSetExplorerProps> = ({
         onQuizClick={handleQuizClick}
         onQuizDelete={deleteQuiz}
         parentRoute={parentRoute}
+        isClass={isClass}
       />
     </div>
   );

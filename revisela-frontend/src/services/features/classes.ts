@@ -124,7 +124,7 @@ export const useMyClasses = (options?: { enabled?: boolean }) => {
 //   });
 // };
 
-export const useClass = (classId: string) => {
+export const useClass = (classId: string, options?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: ['class', classId],
     queryFn: async () => {
@@ -139,6 +139,7 @@ export const useClass = (classId: string) => {
       return response.data!.data;
     },
     enabled: !!classId,
+    refetchInterval: options?.refetchInterval,
     retry: (failureCount, error: any) => {
       // Don't retry on 403 Forbidden as we now return limited data or handle it in UI
       if (error?.response?.status === 403 || error?.status === 403) return false;
@@ -291,7 +292,7 @@ export const useUpdateMemberAccess = () => {
     }: {
       classId: string;
       userId: string;
-      accessLevel: 'admin' | 'collaborator' | 'member';
+      accessLevel: 'owner' | 'admin' | 'collaborator' | 'member';
     }) => {
       const response = await apiRequest(
         CLASS_ENDPOINTS.UPDATE_MEMBER_ACCESS(classId, userId),

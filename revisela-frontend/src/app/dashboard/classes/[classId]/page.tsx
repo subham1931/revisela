@@ -22,6 +22,7 @@ import {
   useRemoveClassMember,
   useUpdateMemberAccess,
   useRequestJoinClass,
+  useRejectJoinRequest,  // check this
 } from '@/services/features/classes';
 
 import { ConfirmationModal, ManageAccessModal } from '@/components/modals';
@@ -32,6 +33,7 @@ import QuizCard from '@/components/ui/quiz/QuizCard';
 import { useToast } from '@/components/ui/toast/index';
 
 import { ROUTES } from '@/constants/routes';
+import { useAppSelector } from '@/store';
 
 import MemberGrid from '../components/MemberGrid';
 
@@ -39,6 +41,7 @@ export default function ClassPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAppSelector((state) => state.auth);
 
   const classId = params.classId as string;
   const deleteClassMutation = useDeleteClass();
@@ -61,37 +64,76 @@ export default function ClassPage() {
     data: classData,
     isLoading: loadingClass,
     error: classError,
-  } = useClass(classId);
+  } = useClass(classId, { refetchInterval: 3000 });
 
-  // 🔥 updated — now use `classData?.userAccessLevel` directly
-  const userAccessLevel = classData?.userAccessLevel as
-    | 'owner'
-    | 'collaborator'
-    | 'member'
-    | 'none'
-    | undefined; // 🔥 updated
+  const currentUserId = user?.id || '';
+  const classLink = typeof window !== 'undefined' ? `${window.location.origin}/dashboard/classes/${classId}` : '';
 
-  const isOwner = userAccessLevel === 'owner'; // 🔥 updated
-  const isCollaborator = userAccessLevel === 'collaborator'; // 🔥 updated
-  const isMember = userAccessLevel === 'member'; // 🔥 updated
+  // Calculate permissions robustly on frontend
+  const ownerId = typeof classData?.owner === 'object' ? classData?.owner?._id : classData?.owner;
 
-  const currentUserId = classData?.currentUserId || 'current-user-id';
-  const classLink =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/dashboard/classes/${classId}`
-      : ''; // 🔥 updated (safe SSR guard)
+  const isOwner =
+    classData?.userAccessLevel === 'owner' ||
+    (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
 
+  const isCollaborator =
+    classData?.userAccessLevel === 'collaborator' ||
+    (classData?.members?.some((m: any) => {
+      const mId = m.user?._id || m.user || '';
+      return mId.toString() === currentUserId.toString() && m.accessLevel === 'collaborator';
+    }));
+
+  const hasAccess = isOwner || isCollaborator || (classData?.members?.some((m: any) => {
+    const mId = m.user?._id || m.user || '';
+    return mId.toString() === currentUserId.toString();
+  }));
+
+  const userAccessLevel = isOwner ? 'owner' : isCollaborator ? 'collaborator' : hasAccess ? 'member' : 'none';
+
+  console.log('🔍 Debug: Access Check', {
+    currentUserId,
+    ownerId,
+    isOwner,
+    isCollaborator,
+    hasAccess,
+    userAccessLevel,
+    membersCount: classData?.members?.length
+  });
+
+  // Check for existing request from the server data
   useEffect(() => {
     if (classData) {
       setFolders(classData.folders || []);
       setQuizzes(classData.quizzes || []);
-      if (classData.joinRequests && classData.joinRequests.length > 0) {
+
+      console.log('🔍 Debug: All Quizzes:', classData.quizzes?.map((q: any) => ({
+        id: q._id || q.id,
+        title: q.title,
+        isBookmarked: q.isBookmarked,
+        bookmarkedBy: q.bookmarkedBy
+      })));
+
+      // Check if the CURRENT USER has a pending request
+      if (classData.joinRequests?.some((req: any) => req.user._id === currentUserId)) {
         setRequestSent(true);
+      } else {
+        setRequestSent(false);
       }
     }
-  }, [classData]);
+  }, [classData, currentUserId]);
+
+  const { mutate: rejectJoinRequest, isPending: isCancelingRequest } = useRejectJoinRequest();
 
   const handleBack = () => router.push(ROUTES.DASHBOARD.CLASSES.ROOT);
+
+  const handleCopyClassLink = () => {
+    navigator.clipboard.writeText(classLink);
+    toast({
+      title: 'Success',
+      description: 'Class link copied to clipboard',
+      type: 'success',
+    });
+  };
 
   const handleDeleteClass = () => {
     console.log('Delete button clicked');
@@ -131,7 +173,7 @@ export default function ClassPage() {
     if (normalized === 'remove access') {
       handleRemoveMember(userId);
     } else if (normalized === 'transfer ownership') {
-      updateAccess({ classId, userId, accessLevel: 'owner' }); // 🔥 updated (use correct access level)
+      updateAccess({ classId, userId, accessLevel: 'owner' });
       toast({
         title: 'Ownership Transferred',
         description: 'Member is now owner',
@@ -180,7 +222,11 @@ export default function ClassPage() {
   }
 
   // Check if user has access to the class
-  if (!userAccessLevel || userAccessLevel === 'none') {
+  // Check if user has access to the class
+  // If userAccessLevel is now strictly 'owner'|'collaborator'|'member', we check against those.
+  // Or check if classData requires access and user doesn't have it.
+
+  if (!hasAccess && (!userAccessLevel || userAccessLevel === 'none' as any)) { // Cast to any to silence strict check if userAccessLevel inferred strictly
     return (
       <div className="bg-white min-h-[calc(100vh-100px)] flex flex-col items-start px-20">
         {/* Header Section */}
@@ -246,9 +292,28 @@ export default function ClassPage() {
               <Button
                 variant="outline"
                 className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 px-8 py-2 h-auto text-base"
-                onClick={() => setRequestSent(false)}
+                onClick={() => {
+                  rejectJoinRequest({ classId, userId: currentUserId }, {
+                    onSuccess: () => {
+                      toast({
+                        title: 'Request Cancelled',
+                        description: 'Your join request has been cancelled.',
+                        type: 'success',
+                      });
+                      setRequestSent(false);
+                    },
+                    onError: (error: any) => {
+                      toast({
+                        title: 'Error',
+                        description: error.message || 'Failed to cancel request',
+                        type: 'error',
+                      });
+                    }
+                  });
+                }}
+                disabled={isCancelingRequest}
               >
-                Cancel Request
+                {isCancelingRequest ? 'Canceling...' : 'Cancel Request'}
               </Button>
             </div>
           )}
@@ -319,16 +384,11 @@ export default function ClassPage() {
                   ]
                   : []),
 
-                // Only non-owners can leave
-                ...(!isOwner && !isCollaborator
-                  ? [
-                    {
-                      label: 'Copy Class Link',
-                      icon: <Link size={16} />,
-                      // onClick: handleCopyClassLink,
-                    },
-                  ]
-                  : []),
+                {
+                  label: 'Copy Class Link',
+                  icon: <Link size={16} />,
+                  onClick: handleCopyClassLink,
+                },
 
                 {
                   label: 'Leave Class',
@@ -390,8 +450,8 @@ export default function ClassPage() {
                       name={folder.name}
                       isBookmarked={true}
                       onClick={() => router.push(`/dashboard/classes/${classId}/folders/${folder._id}`)}
-                      isClass={true}
-                      hideActions={!isOwner && !isCollaborator}
+                      isClass={!isOwner && !isCollaborator}
+                    // hideActions={!isOwner && !isCollaborator}
                     />
                   ))}
                 </div>
@@ -411,13 +471,14 @@ export default function ClassPage() {
                       title={quiz.title}
                       description={quiz.description || ''}
                       tags={quiz.tags || []}
-                      creator={{
+                      user={{
                         name: quiz.createdBy?.name || 'Unknown',
-                        isCurrentUser: false,
+                        profileImage: quiz.createdBy?.profileImage,
                       }}
-                      isClass={true}
+                      isClass={!isOwner && !isCollaborator} // Only restrict for members
                       parentRoute={`dashboard/classes/${classId}/quizzes`}
-                      hideActions={!isOwner && !isCollaborator}
+                      // hideActions={!isOwner && !isCollaborator} // Allow actions (dropdown) to show, just restricted
+                      isBookmarked={quiz.isBookmarked}
                     />
                   ))}
                 </div>
@@ -441,7 +502,7 @@ export default function ClassPage() {
               joinedAt: classData.createdAt,
             }}
             members={classData.members || []}
-            isOwner={isOwner}
+            isOwner={!!isOwner}
             columns={3}
             userAccessLevel={userAccessLevel} // 🔥 updated
             onManage={(userId, action) => handleManageAccess(userId, action)}
@@ -509,7 +570,7 @@ export default function ClassPage() {
               toast({
                 title: 'Failed to leave class',
                 description: error?.message || 'Something went wrong.',
-                variant: 'destructive',
+                type: 'error',
               });
             },
           });

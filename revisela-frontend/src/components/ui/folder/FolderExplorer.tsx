@@ -14,11 +14,13 @@ interface RenderContentOptions {
 interface FolderExplorerProps {
   title?: string;
   renderContent?: (currentFolderId?: string, options?: RenderContentOptions) => React.ReactNode;
+  isClass?: boolean;
 }
 
-const   FolderExplorer: React.FC<FolderExplorerProps> = ({
+const FolderExplorer: React.FC<FolderExplorerProps> = ({
   title = 'Folders',
   renderContent,
+  isClass = false,
 }) => {
   const {
     currentFolderId,
@@ -66,6 +68,7 @@ const   FolderExplorer: React.FC<FolderExplorerProps> = ({
             emptyMessage={
               currentFolderId !== undefined ? 'This folder is empty' : "You don't have any folders yet"
             }
+            isClass={isClass}
           />
         </section>
       )}

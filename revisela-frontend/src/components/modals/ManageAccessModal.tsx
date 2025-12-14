@@ -101,6 +101,13 @@ const ManageAccessModal: React.FC<ManageAccessModalProps> = ({
   const isFolder = resourceType === 'folder';
 
   useEffect(() => {
+    if (!isOpen) {
+      setView('main');
+      setEmailsInput('');
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     const normalizedMembers: AccessUser[] = members
       .filter((m) => ('user' in m ? m.user._id : m._id) !== owner._id)
       .map((m, idx) => {

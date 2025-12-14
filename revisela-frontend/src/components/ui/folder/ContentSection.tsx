@@ -9,10 +9,12 @@ export default function ContentSection({
   currentFolderId,
   suppressQuizzes = false,
   parentRoute,
+  isClass = false,
 }: {
   currentFolderId?: string;
   suppressQuizzes?: boolean;
   parentRoute?: string;
+  isClass?: boolean;
 }) {
   const { subFolders } = useFolderSystem();
   const [quizCount, setQuizCount] = useState(0);
@@ -28,7 +30,7 @@ export default function ContentSection({
   const emptyFolder =
     !hasSubFolders && quizLoaded && quizCount === 0;
 
-    
+
 
   if (emptyFolder) {
     return (
@@ -51,6 +53,7 @@ export default function ContentSection({
               setQuizCount(count);
               setQuizLoaded(true);
             }}
+            isClass={isClass}
           />
         </QuizSetProvider>
       )}

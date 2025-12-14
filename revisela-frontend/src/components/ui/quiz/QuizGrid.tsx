@@ -28,6 +28,7 @@ interface QuizGridProps {
   gridClassName?: string;
   isShared?: boolean; // indicates if quizzes are shared
   parentRoute?: string;
+  isClass?: boolean;
 }
 
 const QuizGrid: React.FC<QuizGridProps> = ({
@@ -40,6 +41,7 @@ const QuizGrid: React.FC<QuizGridProps> = ({
   gridClassName = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4',
   isShared = false,
   parentRoute,
+  isClass = false,
 }) => {
   return (
     <div className={className}>
@@ -68,6 +70,7 @@ const QuizGrid: React.FC<QuizGridProps> = ({
                 }}
                 parentRoute={parentRoute}
                 onDelete={onQuizDelete}
+                isClass={isClass}
               />
             );
           })}
