@@ -10,6 +10,7 @@ const nextConfig = {
       'revisela-storage-bucket.s3.ap-southeast-2.amazonaws.com',
       'www.freepik.com',
       'www.example.com',
+      'example.com',
       'localhost',
       '127.0.0.1'
     ],
