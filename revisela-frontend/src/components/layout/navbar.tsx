@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import { Folder, GraduationCap } from 'lucide-react';
+import { FolderClosed, GraduationCap } from 'lucide-react';
 
 import { useLogout } from '@/services/features/auth';
 import {
@@ -15,7 +15,7 @@ import {
   SearchIcon,
   UserIcon,
 } from '@/components/icons';
-import { CreateFolderModal } from '@/components/modals';
+import { ClassModal, CreateFolderModal } from '@/components/modals';
 import { selectProfileImage, selectUser } from '@/store/slices/authSlice';
 import { ROUTES } from '@/constants/routes';
 import Logo from '@/assets/icons/revisela-logo.png';
@@ -26,6 +26,7 @@ const RootNavbar = () => {
   const router = useRouter();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const user = useAppSelector(selectUser);
@@ -72,7 +73,7 @@ const RootNavbar = () => {
     }
   };
   const handleCreateFolder = () => setIsFolderModalOpen(true);
-  const handleCreateClass = () => router.push(ROUTES.DASHBOARD.CLASSES.CREATE);
+  const handleCreateClass = () => setIsClassModalOpen(true);
 
   const pathname = usePathname();
 
@@ -154,7 +155,7 @@ const RootNavbar = () => {
               {
                 label: (
                   <div className="flex items-center gap-2">
-                    <Folder size={16} />
+                    <FolderClosed size={16} />
                     Folder
                   </div>
                 ),
@@ -222,6 +223,12 @@ const RootNavbar = () => {
         isOpen={isFolderModalOpen}
         onOpenChange={setIsFolderModalOpen}
         onSuccess={() => router.push('/dashboard/library')}
+      />
+
+      <ClassModal
+        isOpen={isClassModalOpen}
+        onOpenChange={setIsClassModalOpen}
+        type="create"
       />
     </>
   );
