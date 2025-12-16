@@ -43,7 +43,8 @@ const MemberGrid: React.FC<MemberGridProps> = ({
 }) => {
   const colsClass = `grid-cols-1 sm:grid-cols-2 md:grid-cols-${columns} gap-4`;
 
-  const allMembers = [owner, ...members.filter((m) => m._id !== owner._id)];
+  const allMembers = [owner, ...members.filter((m) => m.user._id !== owner.user._id)];
+  console.log('MemberGrid allMembers:', allMembers);
 
   if (!allMembers.length) {
     return (
@@ -80,7 +81,7 @@ const MemberGrid: React.FC<MemberGridProps> = ({
               role.toLowerCase() === memberRoleLower
                 ? 'text-[#0890A8] font-semibold'
                 : '',
-            onClick: () => onManage?.(member._id, role),
+            onClick: () => onManage?.(member.user._id, role),
           });
         }
       );
@@ -92,7 +93,7 @@ const MemberGrid: React.FC<MemberGridProps> = ({
             role.toLowerCase() === memberRoleLower
               ? 'text-[#0890A8] font-semibold'
               : '',
-          onClick: () => onManage?.(member._id, role),
+          onClick: () => onManage?.(member.user._id, role),
         });
       });
     }

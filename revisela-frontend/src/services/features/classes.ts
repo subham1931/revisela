@@ -162,6 +162,7 @@ export const useUpdateClass = () => {
         name?: string;
         description?: string;
         publicAccess?: 'restricted' | 'edit' | 'view_only' | 'none';
+        owner?: string;
       };
     }) => {
       const response = await apiRequest<Class>(

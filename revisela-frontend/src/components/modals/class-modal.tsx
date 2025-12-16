@@ -7,7 +7,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Users } from 'lucide-react';
 import { z } from 'zod';
 
-import { useCreateClass, useJoinClass } from '@/services/features/classes';
+import { useCreateClass, useJoinClass, useRequestJoinClass } from '@/services/features/classes';
+import { apiRequest } from '@/services/api-client';
+import { SEARCH_ENDPOINTS } from '@/services/endpoints';
 import { Button, Input, Modal, OtpInput, TabSwitch } from '@/components/ui';
 import { useToast } from '@/components/ui/toast/index';
 
@@ -40,7 +42,12 @@ export const ClassModal: React.FC<ClassModalProps> = ({
   const queryClient = useQueryClient();
 
   const { mutate: createClass, isPending: isCreating } = useCreateClass();
-  const { mutate: joinClass, isPending: isJoining } = useJoinClass();
+  const { mutate: joinClass, isPending: isJoiningBase } = useJoinClass();
+  const { mutate: requestJoin, isPending: isRequesting } = useRequestJoinClass();
+
+  const [isChecking, setIsChecking] = useState(false);
+
+  const isJoining = isJoiningBase || isRequesting || isChecking;
 
   // Sync tab with prop
   useEffect(() => {
@@ -132,24 +139,71 @@ export const ClassModal: React.FC<ClassModalProps> = ({
       return;
     }
 
-    joinClass(code, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['my-classes'] });
-        toast({
-          title: 'Success',
-          description: 'Successfully joined the class',
-          type: 'success',
+    // 3. Search for the class to check if it is restricted
+    // We cannot check access level directly from just code without an endpoint, 
+    // so we try to find it via search or just try to join and let backend handle it?
+    // User requirement: "it joined directly it should first show to request to join"
+
+    // Attempt to resolve class info via search first
+    setIsChecking(true);
+    apiRequest(SEARCH_ENDPOINTS.GLOBAL_SEARCH, { params: { q: code } }).then((res: any) => {
+      setIsChecking(false);
+
+      // Detailed logging to debug the structure
+      console.log('🔍 Search Result Full:', res);
+      console.log('🔍 Search Result Data:', res.data);
+      console.log('🔍 Nested Data:', res.data?.data);
+
+      // The API returns { data: { classes: [...] } }
+      const classes = res.data?.data?.classes || res.data?.classes || [];
+      console.log('🔍 Found Classes:', classes);
+
+      const targetClass = classes.find((c: any) => c.classCode === code);
+      console.log('🔍 Target Class found:', targetClass);
+
+      if (targetClass && targetClass.publicAccess === 'restricted') {
+        // If restricted, we request to join instead
+        requestJoin(targetClass._id, {
+          onSuccess: () => {
+            toast({
+              title: 'Request Sent',
+              description: 'This class is restricted. A join request has been sent to the owner.',
+              type: 'success',
+            });
+            handleClose();
+            onSuccess?.();
+          },
+          onError: (error: any) => {
+            toast({
+              title: 'Error',
+              description: error.message || 'Failed to send join request',
+              type: 'error',
+            });
+          }
         });
-        handleClose();
-        onSuccess?.();
-      },
-      onError: (error) => {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to join class',
-          type: 'error',
-        });
-      },
+        return;
+      }
+
+      // Default behavior: try to join directly
+      joinClass(code, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['my-classes'] });
+          toast({
+            title: 'Success',
+            description: 'Successfully joined the class',
+            type: 'success',
+          });
+          handleClose();
+          onSuccess?.();
+        },
+        onError: (error) => {
+          toast({
+            title: 'Error',
+            description: error.message || 'Failed to join class',
+            type: 'error',
+          });
+        },
+      });
     });
   };
 
