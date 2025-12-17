@@ -455,6 +455,9 @@ export const useBookmarkFolder = () => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.FOLDERS.byParent(),
       });
+
+      // Invalidate shared content queries
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SHARED.all });
     },
   });
 };

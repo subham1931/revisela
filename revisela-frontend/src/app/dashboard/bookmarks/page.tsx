@@ -9,11 +9,54 @@ import { useBookmarkedQuizzes } from '@/services/features/quizzes';
 
 import { FolderItem } from '@/components/ui/folder';
 import QuizCard from '@/components/ui/quiz/QuizCard';
+import { useAppSelector } from '@/store';
+import { selectUser } from '@/store/slices/authSlice';
+import { useUser } from '@/services/features/users';
 
 import { ROUTES } from '@/constants/routes';
 
+
+interface BookmarkedQuizItemProps {
+  quiz: any;
+  currentUser: any;
+}
+
+const BookmarkedQuizItem = ({ quiz, currentUser }: BookmarkedQuizItemProps) => {
+  const creatorId = typeof quiz.createdBy === 'string' ? quiz.createdBy : quiz.createdBy?._id;
+
+  const isObject = typeof quiz.createdBy === 'object';
+  const hasProfileImage = isObject && !!(quiz.createdBy as any).profileImage;
+  const shouldFetch = !!creatorId && (!isObject || !hasProfileImage);
+
+  const { data: fetchedUser } = useUser(shouldFetch ? creatorId : undefined);
+
+  const creator = fetchedUser || (isObject ? quiz.createdBy : undefined);
+  const creatorName = creator?.name || (isObject ? (quiz.createdBy as any).name : 'Unknown');
+
+  // Calculate isShared
+  const isShared = currentUser && creatorId && creatorId !== (currentUser.id || currentUser._id);
+
+  return (
+    <QuizCard
+      id={quiz._id}
+      title={quiz.title}
+      description={quiz.description || ''}
+      tags={quiz.tags || []}
+      user={{
+        name: creatorName,
+        profileImage: creator?.profileImage,
+      }}
+      rating={quiz.rating}
+      isBookmarked={true}
+      isShared={isShared}
+      parentRoute="dashboard/bookmarks"
+    />
+  );
+};
+
 export default function BookmarksPage() {
   const [currentFolder, setCurrentFolder] = useState('All Bookmarks');
+  const currentUser = useAppSelector(selectUser);
 
   const { data: bookmarkedFolders = [], isLoading: foldersLoading } =
     useBookmarkedFolders();
@@ -52,15 +95,21 @@ export default function BookmarksPage() {
               </div>
             ) : bookmarkedFolders.length === 0 ? null : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {bookmarkedFolders.map((folder: any) => (
-                  <FolderItem
-                    key={folder._id}
-                    id={folder._id}
-                    name={folder.name}
-                    isBookmarked={true}
-                    onClick={() => setCurrentFolder(folder.name)}
-                  />
-                ))}
+                {bookmarkedFolders.map((folder: any) => {
+                  const ownerId = typeof folder.owner === 'string' ? folder.owner : folder.owner?._id;
+                  const isFolderShared = currentUser && ownerId && ownerId !== (currentUser.id || currentUser._id);
+
+                  return (
+                    <FolderItem
+                      key={folder._id}
+                      id={folder._id}
+                      name={folder.name}
+                      isBookmarked={true}
+                      isShared={isFolderShared}
+                      onClick={() => setCurrentFolder(folder.name)}
+                    />
+                  );
+                })}
               </div>
             )}
           </section>
@@ -78,19 +127,10 @@ export default function BookmarksPage() {
             ) : bookmarkedQuizzes.length === 0 ? null : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {bookmarkedQuizzes.map((quizSet: any) => (
-                  <QuizCard
+                  <BookmarkedQuizItem
                     key={quizSet._id}
-                    id={quizSet._id}
-                    title={quizSet.title}
-                    description={quizSet.description || ''}
-                    tags={quizSet.tags || []}
-                    user={{
-                      name: quizSet.createdBy?.name || 'Unknown',
-                      profileImage: quizSet.createdBy?.profileImage,
-                    }}
-                    rating={quizSet.rating}
-                    isBookmarked={true}
-                    parentRoute="dashboard/bookmarks"
+                    quiz={quizSet}
+                    currentUser={currentUser}
                   />
                 ))}
               </div>

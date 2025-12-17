@@ -223,13 +223,13 @@ const QuizCard: React.FC<QuizCardProps> = ({
               />
             )}
 
-            {!isInTrash && isShared && (
+            {/* {!isInTrash && isShared && (
               <Users
                 size={18}
                 className="text-[#444444]"
                 strokeWidth={1.5}
               />
-            )}
+            )} */}
 
             {!hideActions && <ActionDropdown items={dropdownItems} />}
           </div>
@@ -258,25 +258,38 @@ const QuizCard: React.FC<QuizCardProps> = ({
               src={user?.profileImage || defaultuser}
               alt={user?.name || 'You'}
               className="w-10 h-10 rounded-full object-cover"
+              width={40}
+              height={40}
             />
 
             <div className="flex flex-col">
               <span className="text-sm text-gray-700">
                 {user?.name || 'You'}
               </span>
-              <span className="text-xs text-gray-700">Not Shared</span>
+              <span className="text-xs text-gray-700">
+                {isShared ? 'Shared' : 'Not Shared'}
+              </span>
             </div>
           </div>
 
-          {rating > 0 && (
-            <div className="flex">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} className="text-yellow-400">
-                  {i < rating ? '★' : '☆'}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {rating > 0 && (
+              <div className="flex">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className="text-yellow-400">
+                    {i < rating ? '★' : '☆'}
+                  </span>
+                ))}
+              </div>
+            )}
+            {!isInTrash && isShared && (
+              <Users
+                size={18}
+                className="text-gray-500"
+                strokeWidth={1.5}
+              />
+            )}
+          </div>
         </div>
       </div>
 

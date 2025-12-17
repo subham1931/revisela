@@ -7,8 +7,44 @@ import { ChevronRight } from 'lucide-react';
 
 import QuizCard from '@/components/ui/quiz/QuizCard';
 import { useSharedQuizzes } from '@/services/features/shared';
+import { useUser } from '@/services/features/users';
+import { Quiz } from '@/services/features/quizzes';
 
 import { ROUTES } from '@/constants/routes';
+
+interface SharedQuizItemProps {
+  quiz: Quiz;
+}
+
+const SharedQuizItem = ({ quiz }: SharedQuizItemProps) => {
+  const creatorId = typeof quiz.createdBy === 'string' ? quiz.createdBy : quiz.createdBy?._id;
+
+  const isObject = typeof quiz.createdBy === 'object';
+  const hasProfileImage = isObject && !!(quiz.createdBy as any).profileImage;
+  const shouldFetch = !!creatorId && (!isObject || !hasProfileImage);
+
+  const { data: fetchedUser } = useUser(shouldFetch ? creatorId : undefined);
+
+  const creator = fetchedUser || (isObject ? quiz.createdBy : undefined);
+  const creatorName = creator?.name || (isObject ? (quiz.createdBy as any).name : 'Unknown');
+
+  return (
+    <QuizCard
+      id={quiz._id}
+      title={quiz.title}
+      description={quiz.description || ''}
+      tags={quiz.tags || []}
+      rating={0}
+      user={{
+        name: creatorName,
+        profileImage: creator?.profileImage,
+      }}
+      parentRoute="dashboard/shared"
+      isBookmarked={!!quiz.isBookmarked}
+      isShared={true}
+    />
+  );
+};
 
 const SharedSection = () => {
   const { data: sharedQuizzes = [], isLoading } = useSharedQuizzes();
@@ -56,20 +92,7 @@ const SharedSection = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {sharedQuizzes.slice(0, 3).map((quiz) => (
-            <QuizCard
-              key={quiz._id}
-              id={quiz._id}
-              title={quiz.title}
-              description={quiz.description || ''}
-              tags={quiz.tags || []}
-              rating={0}
-              user={{
-                name: quiz.createdBy?.name || 'Unknown',
-                profileImage: quiz.createdBy?.profileImage,
-              }}
-              parentRoute="dashboard/shared"
-              isBookmarked={!!quiz.isBookmarked}
-            />
+            <SharedQuizItem key={quiz._id} quiz={quiz} />
           ))}
         </div>
       )}

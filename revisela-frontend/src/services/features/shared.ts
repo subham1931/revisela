@@ -11,6 +11,7 @@ interface SharedOwner {
   name: string;
   username?: string;
   email: string;
+  profileImage?: string;
 }
 
 interface SharedFolder {

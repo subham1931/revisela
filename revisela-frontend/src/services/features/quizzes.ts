@@ -20,6 +20,8 @@ export interface Quiz {
     _id: string;
     name: string;
     username?: string;
+    email?: string;
+    profileImage?: string;
   };
   sharedWith?: string[];
   publicAccess?: string;
@@ -435,6 +437,9 @@ export const useBookmarkQuiz = () => {
 
       // 3️⃣ Invalidate class queries (since they contain quizzes)
       queryClient.invalidateQueries({ queryKey: ['class'] });
+
+      // 4️⃣ Invalidate shared queries so "Shared With Me" updates instantly
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SHARED.all });
     },
   });
 };

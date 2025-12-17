@@ -7,7 +7,7 @@ import { GridSkeletonLoader } from '@/components/ui/loaders';
 import { QuizSetItem } from '@/app/dashboard/library/components';
 
 import QuizCard from './QuizCard';
-import QuizItem from './QuizItem';
+import { useUser } from '@/services/features/users';
 
 export interface Quiz {
   _id: string;
@@ -15,8 +15,60 @@ export interface Quiz {
   description?: string;
   tags?: string[];
   isBookmarked?: boolean;
+  createdBy?: string | {
+    _id: string;
+    name: string;
+    username?: string;
+    email?: string;
+    profileImage?: string;
+  };
   [key: string]: any;
 }
+
+interface GridQuizItemProps {
+  quiz: Quiz;
+  isShared: boolean;
+  parentRoute?: string;
+  onDelete?: (id: string) => void;
+  isClass?: boolean;
+}
+
+const GridQuizItem = ({ quiz, isShared, parentRoute, onDelete, isClass }: GridQuizItemProps) => {
+  const creatorId = typeof quiz.createdBy === 'string' ? quiz.createdBy : quiz.createdBy?._id;
+
+  const isObject = typeof quiz.createdBy === 'object';
+  // Check if we have an object but it's missing the profile image
+  const hasProfileImage = isObject && !!(quiz.createdBy as any).profileImage;
+
+  // Fetch if we only have an ID, or if we have an object but no image
+  const shouldFetch = !!creatorId && (!isObject || !hasProfileImage);
+
+  const { data: fetchedUser } = useUser(shouldFetch ? creatorId : undefined);
+
+  // Use fetched user if available, otherwise fallback to existing object
+  const creator = fetchedUser || (isObject ? quiz.createdBy : undefined);
+
+  // Safe name fallback
+  const creatorName = creator?.name || (isObject ? (quiz.createdBy as any).name : 'Unknown');
+
+  return (
+    <QuizCard
+      id={quiz._id}
+      title={quiz.title}
+      description={quiz.description || ' '}
+      tags={quiz.tags || []}
+      isBookmarked={quiz.isBookmarked}
+      isShared={isShared}
+      user={{
+        name: creatorName,
+        profileImage: creator?.profileImage,
+      }}
+      parentRoute={parentRoute}
+      onDelete={onDelete}
+      isClass={isClass}
+    />
+  );
+};
 
 interface QuizGridProps {
   quizzes: Quiz[];
@@ -56,18 +108,10 @@ const QuizGrid: React.FC<QuizGridProps> = ({
         <div className={`grid ${gridClassName}`}>
           {quizzes.map((quiz) => {
             return (
-              <QuizCard
+              <GridQuizItem
                 key={quiz._id}
-                id={quiz._id}
-                title={quiz.title}
-                description={quiz.description || ' '}
-                tags={quiz.tags || []}
-                isBookmarked={quiz.isBookmarked}
+                quiz={quiz}
                 isShared={isShared}
-                user={{
-                  name: quiz.createdBy?.name || 'You',
-                  profileImage: quiz.createdBy?.profileImage,
-                }}
                 parentRoute={parentRoute}
                 onDelete={onQuizDelete}
                 isClass={isClass}
