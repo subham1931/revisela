@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { Pencil, ChevronDown } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 
 interface EditFieldModalProps {
@@ -35,15 +35,32 @@ const EditFieldModal: React.FC<EditFieldModalProps> = ({
   const [year, setYear] = useState('');
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isPasswordReadOnly, setIsPasswordReadOnly] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
-      setValue('');
+      setValue(initialValue || '');
+
+      if (field === 'birthday' && initialValue) {
+        const [d, m, y] = initialValue.split('-');
+        if (d && m && y) {
+          setDay(d);
+          setMonth(m);
+          setYear(y);
+        } else {
+          setDay('');
+          setMonth('');
+          setYear('');
+        }
+      } else {
+        setDay('');
+        setMonth('');
+        setYear('');
+      }
+
       setPassword('');
-      setDay('');
-      setMonth('');
-      setYear('');
       setError('');
+      setIsPasswordReadOnly(true);
     }
   }, [isOpen]);
 
@@ -104,62 +121,97 @@ const EditFieldModal: React.FC<EditFieldModalProps> = ({
             <p className="text-center text-gray-400 text-sm">
               You can only change this once
             </p>
-            <div className="flex flex-col gap-2 items-start justify-around relative">
-              <p className="text-gray-400 text-center">Birthday</p>
-              <div className="w-full flex gap-3 items-center justify-around">
-                <select
-                  value={day}
-                  onChange={(e) => setDay(e.target.value)}
-                  className="border border-gray-400 rounded px-4 py-3 w-full"
-                >
-                  <option value="">DD</option>
-                  {days.map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-                <select
-                  value={month}
-                  onChange={(e) => setMonth(e.target.value)}
-                  className="border border-gray-400 rounded px-4 py-3 w-full"
-                >
-                  <option value="">MMM</option>
-                  {months.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-                <select
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  className="border border-gray-400 rounded px-4 py-3 w-full"
-                >
-                  <option value="">YYYY</option>
-                  {years.map((y) => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+            <div className="flex flex-col gap-3 items-center justify-center relative">
+              <p className="text-gray-500 text-sm font-medium">Birthday</p>
+              <div className="w-full flex gap-2 items-center justify-center">
+                <div className="relative flex-1">
+                  <select
+                    value={day}
+                    onChange={(e) => setDay(e.target.value)}
+                    className="border border-[#ACACAC] rounded pl-4 pr-8 py-3 w-full text-center appearance-none bg-transparent cursor-pointer outline-none"
+                    style={{ textAlignLast: 'center' }}
+                  >
+                    <option value="">DD</option>
+                    {days.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"
+                  />
+                </div>
+
+                <div className="relative flex-1">
+                  <select
+                    value={month}
+                    onChange={(e) => setMonth(e.target.value)}
+                    className="border border-[#ACACAC] rounded pl-4 pr-8 py-3 w-full text-center appearance-none bg-transparent cursor-pointer outline-none"
+                    style={{ textAlignLast: 'center' }}
+                  >
+                    <option value="">MMM</option>
+                    {months.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"
+                  />
+                </div>
+
+                <div className="relative flex-1">
+                  <select
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    className="border border-[#ACACAC] rounded pl-4 pr-8 py-3 w-full text-center appearance-none bg-transparent cursor-pointer outline-none"
+                    style={{ textAlignLast: 'center' }}
+                  >
+                    <option value="">YYYY</option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"
+                  />
+                </div>
               </div>
             </div>
           </div>
         ) : (
-          <Input
-            label={label}
-            type={type}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            error={error}
-            placeholder={`Enter your new ${label.toLowerCase()}`}
-            className="border border-gray-400 rounded px-4 py-3 w-full"
-          />
-        )}
-
+          <>
+            {field === 'fullName' && (
+              <p className="text-center text-gray-400 text-sm mb-2">
+                You can only change this once
+              </p>
+            )}
+            <Input
+              label={label}
+              type={type}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              error={error}
+              placeholder={`Enter your new ${label.toLowerCase()}`}
+              className="border border-gray-400 rounded px-4 py-3 w-full"
+              autoComplete="off"
+              name={field}
+            />
+          </>
+        )
+        }
         {/* 🔒 Password confirmation field */}
         <Input
-          label="Current Password"
+          label="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password to confirm"
           className="border border-gray-400 rounded px-4 py-3 w-full"
+          autoComplete="new-password"
+          readOnly={isPasswordReadOnly}
+          onFocus={() => setIsPasswordReadOnly(false)}
         />
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -180,8 +232,8 @@ const EditFieldModal: React.FC<EditFieldModalProps> = ({
             {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </div>
-      </div>
-    </Modal>
+      </div >
+    </Modal >
   );
 };
 

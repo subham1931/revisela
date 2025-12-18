@@ -192,21 +192,11 @@ export default function CreateQuizForm({ onSuccess, onCancel, folderId: propFold
                         onTypeSelected={handleTypeSelected}
                     />
 
-                    <div className="flex justify-end gap-3">
-                        {onCancel && (
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                disabled={isPending}
-                            >
-                                Cancel
-                            </button>
-                        )}
+                    <div className="flex justify-center gap-3">
                         <button
                             type="submit"
                             disabled={isPending}
-                            className={`bg-[#0890A8] hover:bg-[#0890A8]/75 text-white rounded-md h-10 px-4 text-sm font-medium flex items-center gap-1 ${isPending ? 'opacity-70 cursor-not-allowed' : ''
+                            className={`bg-[#0890A8] hover:bg-[#0890A8]/75 text-white rounded-md h-10 px-6 text-sm font-medium flex items-center gap-1 ${isPending ? 'opacity-70 cursor-not-allowed' : ''
                                 }`}
                         >
                             <PlusIcon size={20} />
@@ -220,15 +210,15 @@ export default function CreateQuizForm({ onSuccess, onCancel, folderId: propFold
                         <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md text-center">
                             <h2 className="text-xl font-bold mb-5">🎉 Congratulations!</h2>
                             <p className="mb-6">Your quiz set has been created successfully.</p>
-                            <div className="flex justify-between gap-4">
+                            <div className="flex flex-col xs:flex-row justify-center gap-4">
                                 <button
-                                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                    className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium transition-colors"
                                     onClick={() => router.push('/dashboard')}
                                 >
                                     Go Back
                                 </button>
                                 <button
-                                    className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                                    className="px-6 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 text-sm font-medium transition-colors"
                                     onClick={() => setShowSuccessModal(false)}
                                 >
                                     Revise

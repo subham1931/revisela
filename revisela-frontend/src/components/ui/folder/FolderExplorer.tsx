@@ -53,7 +53,7 @@ const FolderExplorer: React.FC<FolderExplorerProps> = ({
   const renderOptions = { suppressQuizzes: hasSubFolders };
 
   return (
-    <div>
+    <div className=''>
       <div className="flex items-center justify-between mb-8">
         <Breadcrumb items={formattedBreadcrumbs} />
       </div>

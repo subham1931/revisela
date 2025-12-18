@@ -139,7 +139,7 @@ const MediaSelector = ({ id }: MediaSelectorProps) => {
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
               >
                 <Music size={14} />
-                Audio
+                Media
               </label>
               <input
                 type="file"
@@ -164,40 +164,42 @@ const MediaSelector = ({ id }: MediaSelectorProps) => {
 
       {/* Modal with blurred background */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="relative rounded-lg max-w-lg w-full mt-20">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 mx-4 flex flex-col items-center">
             {/* Close button */}
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-3 right-3 text-gray-600 border-2 border-[#444444] rounded-full bg-white"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <X size={20} />
+              <X size={24} strokeWidth={1} />
             </button>
 
             {/* Image preview */}
             {imagePreview && (
-              <Image
-                src={imagePreview}
-                alt="Full Preview"
-                width={500}
-                height={350}
-                className="rounded-md object-contain mx-auto"
-              />
+              <div className="w-full flex justify-center mb-4">
+                <Image
+                  src={imagePreview}
+                  alt="Full Preview"
+                  width={500}
+                  height={350}
+                  className="rounded-lg object-contain"
+                />
+              </div>
             )}
 
             {/* Audio preview */}
             {audioUrl && (
-              <div className="mt-12 bg-white p-10 space-y-5">
-                {' '}
-                <div className="flex justify-center items-center gap-2 text-2xl ">
-                  <CiMusicNote1 />
-                  <p>Audio Preview</p>
+              <div className="w-full flex flex-col items-center gap-6">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="bg-[#F1F5F9] p-5 rounded-full">
+                    <Music size={32} className="text-[#0890A8]" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[#1E293B]">Audio Preview</h3>
                 </div>
-                {/* <AudioPlayer src={audioUrl} /> */}
-                <audio controls className="w-full">
-                  <source src={audioUrl} type="audio/mpeg" />
-                  Your browser does not support the audio element.
-                </audio>
+
+                <div className="w-full bg-[#F8FAFC] p-6 rounded-2xl border border-[#F1F5F9]">
+                  <AudioPlayer src={audioUrl} />
+                </div>
               </div>
             )}
           </div>

@@ -54,7 +54,7 @@ export default function CreateQuestionCard({
   };
 
   return (
-    <div className="max-w-full mx-auto">
+    <div className="w-full">
       {questionFields.length > 0 && (
         <DndContext
           sensors={sensors}

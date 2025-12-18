@@ -56,11 +56,11 @@ interface QuestionTypeSelectorProps {
   title?: string;
 }
 
-export default function QuestionTypeSelector({ 
-  onSelect, 
+export default function QuestionTypeSelector({
+  onSelect,
   onCancel,
   onDelete,
-  title = 'Select a question type!' 
+  title = 'Select a question type!'
 }: QuestionTypeSelectorProps) {
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-8 w-full">
@@ -78,25 +78,25 @@ export default function QuestionTypeSelector({
           </button>
         )}
       </div>
-      <div className="flex gap-4 justify-center mb-4">
+      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
         <button
           type="button"
           onClick={() => onSelect('Flashcard')}
-          className="bg-[#FFCE94] hover:bg-[#FFCE94]/75 text-[#444444] px-6 py-3 rounded-md font-medium"
+          className="bg-[#FFCE94] hover:bg-[#FFCE94]/75 text-[#444444] px-6 py-3 rounded-md font-medium w-full sm:w-auto"
         >
           Flashcard
         </button>
         <button
           type="button"
           onClick={() => onSelect('Multiple Choice Question (MCQ)')}
-          className="bg-[#ADF5C6] hover:bg-[#ADF5C6]/75 text-[#444444] px-6 py-3 rounded-md font-medium"
+          className="bg-[#ADF5C6] hover:bg-[#ADF5C6]/75 text-[#444444] px-6 py-3 rounded-md font-medium w-full sm:w-auto"
         >
           Multiple Choice Question (MCQ)
         </button>
         <button
           type="button"
           onClick={() => onSelect('Fill-In')}
-          className="bg-[#FFCDFD] hover:bg-[#FFCDFD]/75 text-[#444444] px-6 py-3 rounded-md font-medium"
+          className="bg-[#FFCDFD] hover:bg-[#FFCDFD]/75 text-[#444444] px-6 py-3 rounded-md font-medium w-full sm:w-auto"
         >
           Fill-In
         </button>

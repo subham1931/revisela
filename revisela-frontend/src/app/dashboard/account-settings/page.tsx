@@ -96,7 +96,8 @@ const AccountSettings = () => {
 
   const handleUpdateProfile = (
     field: keyof typeof userProfile,
-    value: string
+    value: string,
+    password?: string
   ) => {
     if (userProfile[field] === value) return;
 
@@ -149,7 +150,7 @@ const AccountSettings = () => {
       return;
     }
 
-    setUserProfile((prev) => ({ ...prev, [field]: value }));
+    // setUserProfile((prev) => ({ ...prev, [field]: value })); // REMOVED OPTIMISTIC UPDATE
 
     const fieldMap: Record<string, string> = {
       fullName: 'name',
@@ -157,10 +158,23 @@ const AccountSettings = () => {
       email: 'email',
       birthday: 'birthday',
     };
+
+    // Include the password in the payload
+    const payload: any = {
+      [fieldMap[field]]: value,
+      _id: userData?._id,
+      password: password // Check password
+    };
+
+    console.log('Sending Update Payload:', payload); // DEBUG LOG
+
     updateProfile(
-      { [fieldMap[field]]: value, _id: userData?._id },
+      payload,
       {
         onSuccess: () => {
+          // UPDATE STATE HERE ON SUCCESS
+          setUserProfile((prev) => ({ ...prev, [field]: value }));
+
           if (field === 'fullName' || field === 'birthday') {
             const updatedHistory = { ...fieldEditHistory, [field]: true };
             setFieldEditHistory(updatedHistory);
@@ -173,13 +187,24 @@ const AccountSettings = () => {
           toast({
             title: 'Profile Updated',
             description: `Your ${field} has been updated successfully.`,
+            type: 'success', // Show green
           });
         },
         onError: (error: any) => {
-          setUserProfile((prev) => ({ ...prev, [field]: userProfile[field] }));
+          // No need to revert since we didn't update yet
+          // setUserProfile((prev) => ({ ...prev, [field]: userProfile[field] }));
+
+          let errorMessage = error.message || `Failed to update ${field}.`;
+
+          // Improved error message for password validation failure
+          if (errorMessage.includes('Validation failed')) {
+            errorMessage = 'Incorrect password. Please try again.';
+          }
+
           toast({
             title: 'Update Failed',
-            description: error.message || `Failed to update ${field}.`,
+            description: errorMessage,
+            type: 'error', // Show red
           });
         },
       }
@@ -230,6 +255,7 @@ const AccountSettings = () => {
             toast({
               title: 'Profile Updated',
               description: 'Your profile image has been updated successfully.',
+              type: 'success',
             });
           },
           onError: (error: any) => {
@@ -428,8 +454,8 @@ const AccountSettings = () => {
             ? userProfile[activeEditField as keyof typeof userProfile]
             : ''
         }
-        onSave={(value) => {
-          handleUpdateProfile(activeEditField as any, value);
+        onSave={(value, password) => {
+          handleUpdateProfile(activeEditField as any, value, password);
           closeEditModal();
         }}
       />

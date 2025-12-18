@@ -49,36 +49,36 @@ const AudioPlayer = ({ src }: AudioPlayerProps) => {
 
   return (
     <div className="flex items-center gap-4 w-full">
-      <button onClick={togglePlay} className="flex-shrink-0">
-        {playing ? <Pause size={20} /> : <Play size={20} />}
+      <button
+        type="button"
+        onClick={togglePlay}
+        className="flex-shrink-0 text-gray-700 hover:text-teal-600 transition-colors"
+      >
+        {playing ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
       </button>
 
-      <div className="relative flex-1 h-2 bg-gray-300 rounded-full">
-        {/* Progress filled */}
+      <div className="relative flex-1 group">
+        <input
+          type="range"
+          min={0}
+          max={duration || 0}
+          value={progress}
+          onChange={handleSeek}
+          className="absolute inset-0 w-full h-1 opacity-0 cursor-pointer z-10"
+        />
+        <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gray-400 group-hover:bg-[#0890A8] transition-colors"
+            style={{ width: `${(progress / duration) * 100 || 0}%` }}
+          />
+        </div>
         <div
-          className="absolute h-2 bg-teal-500 rounded-full"
-          style={{ width: `${(progress / duration) * 100 || 0}%` }}
-        ></div>
-
-        {/* Draggable knob */}
-        <div
-          className="absolute w-4 h-4 bg-teal-500 rounded-full -top-1 -translate-x-1/2"
-          style={{ left: `${(progress / duration) * 100 || 0}%` }}
-        ></div>
+          className="absolute top-2 -translate-y-1/2 w-3 h-3 bg-gray-600 group-hover:bg-[#0890A8] rounded-full shadow-sm pointer-events-none transition-colors"
+          style={{ left: `${(progress / duration) * 100 || 0}%`, transform: `translate(-50%, -50%)` }}
+        />
       </div>
 
-      {/* Hidden range input for seeking */}
-      <input
-        type="range"
-        min={0}
-        max={duration || 0}
-        value={progress}
-        onChange={handleSeek}
-        className="hidden"
-      />
-
-      {/* Hidden audio element */}
-      <audio ref={audioRef} src={src} />
+      <audio ref={audioRef} src={src} onEnded={() => setPlaying(false)} />
     </div>
   );
 };

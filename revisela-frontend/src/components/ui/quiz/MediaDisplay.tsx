@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React, { useState } from "react";
-import { CiMusicNote1 } from "react-icons/ci";
-import { X } from "lucide-react";
+import { X, Music } from "lucide-react";
+import AudioPlayer from "./AudioPlayer";
 
 interface MediaDisplayProps {
   imageUrl?: string | null;
@@ -32,45 +32,49 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ imageUrl, audioUrl }) => {
             onClick={() => setModalOpen(true)}
             className="flex items-center justify-center text-gray-600"
           >
-            <CiMusicNote1 size={24} />
+            <Music size={24} />
           </button>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal with blurred background */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="relative rounded-lg max-w-lg w-full p-4">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 mx-4 flex flex-col items-center">
             {/* Close button */}
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-3 right-3 text-gray-600 border-2 border-[#444444] rounded-full bg-white"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <X size={20} />
+              <X size={24} strokeWidth={1} />
             </button>
 
             {/* Image in modal */}
             {imageUrl && (
-              <Image
-                src={imageUrl}
-                alt="Full Preview"
-                width={500}
-                height={350}
-                className="rounded-md object-contain mx-auto"
-              />
+              <div className="w-full flex justify-center mb-4">
+                <Image
+                  src={imageUrl}
+                  alt="Full Preview"
+                  width={500}
+                  height={350}
+                  className="rounded-lg object-contain"
+                />
+              </div>
             )}
 
             {/* Audio in modal */}
             {audioUrl && (
-              <div className="mt-6 bg-white p-4 rounded-md">
-                <div className="flex justify-center items-center gap-2 text-lg">
-                  <CiMusicNote1 />
-                  <p>Audio Preview</p>
+              <div className="w-full flex flex-col items-center gap-6">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="bg-[#F1F5F9] p-5 rounded-full">
+                    <Music size={32} className="text-[#0890A8]" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[#1E293B]">Audio Preview</h3>
                 </div>
-                <audio controls className="w-full mt-2">
-                  <source src={audioUrl} type="audio/mpeg" />
-                  Your browser does not support the audio element.
-                </audio>
+
+                <div className="w-full bg-[#F8FAFC] p-6 rounded-2xl border border-[#F1F5F9]">
+                  <AudioPlayer src={audioUrl} />
+                </div>
               </div>
             )}
           </div>

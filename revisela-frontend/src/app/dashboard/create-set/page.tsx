@@ -5,7 +5,7 @@ import CreateQuizForm from './_components/CreateQuizForm';
 
 export default function CreateSetPage() {
   return (
-    <main className="container px-4 max-w-full">
+    <main className="container  max-w-full">
       <CreateQuizForm />
     </main>
   );

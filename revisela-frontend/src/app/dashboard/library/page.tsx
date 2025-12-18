@@ -150,14 +150,6 @@ export default function LibraryPage() {
   if (isCreateMode) {
     return (
       <main className="container px-4 max-w-full">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Create New Quiz Set
-          </h1>
-          <p className="text-gray-500 text-sm">
-            {folderId ? 'Adding to current folder' : 'Adding to library root'}
-          </p>
-        </div>
         <CreateQuizForm
           folderId={folderId}
           onSuccess={handleExitCreate}
@@ -168,7 +160,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <FolderProvider
+    <FolderProvider 
       initialFolderId={folderId}
       rootName="My Library"
       rootPath={ROUTES.DASHBOARD.LIBRARY}

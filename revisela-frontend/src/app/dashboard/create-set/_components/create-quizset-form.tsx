@@ -157,36 +157,34 @@ export default function CreateSetForm({ onImport, onBack }: CreateSetFormProps) 
     ];
 
   return (
-    <div className="max-w-full  mb-8 relative">
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-full mb-8 relative">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <Link
           href="/dashboard"
-          className="flex items-center h-10 px-4 py-2 rounded-md border border-gray-300 text-gray-600 hover:text-gray-900 hover:border-[#0890A8] text-sm font-medium"
+          className="flex items-center h-10 px-4 py-2 rounded-md border border-gray-300 text-gray-600 hover:text-gray-900 hover:border-[#0890A8] text-sm font-medium w-fit"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Go Back
         </Link>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
           <button
             type="button"
-            className="border border-gray-300 rounded-md h-10 px-4 py-2 text-sm font-medium text-gray-700 flex items-center gap-2 hover:text-gray-900 hover:border-[#0890A8]"
+            className="flex-1 sm:flex-none border border-gray-300 rounded-md h-10 px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 flex items-center justify-center gap-2 hover:text-gray-900 hover:border-[#0890A8]"
             onClick={() => setShowImportModal(true)}
           >
             <Import className="h-4 w-4" />
-            Import
+            <span className="hidden xs:inline">Import</span>
+            <span className="xs:hidden">Import</span>
           </button>
           <button
             type="button"
-            className="border border-gray-300 rounded-md h-10 px-4 text-sm font-medium text-gray-700 hover:text-gray-900 hover:border-[#0890A8]"
+            className="border border-gray-300 rounded-md h-10 px-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:border-[#0890A8]"
           >
-            {/* <Settings className="h-4.5 w-4.5" /> */}
-            {/* <SlidersHorizontal className="h-4 w-4" /> */}
             <ActionDropdown items={dropdownItems} triggerIcon={<SlidersHorizontal className="h-4 w-4" />} />
           </button>
           <button
             type="submit"
-            className="bg-[#0890A8] hover:bg-[#0890A8]/75 text-white rounded-md h-10 px-4 text-sm font-medium flex items-center gap-1"
-
+            className="flex-1 sm:flex-none bg-[#0890A8] hover:bg-[#0890A8]/75 text-white rounded-md h-10 px-4 text-sm font-medium flex items-center justify-center gap-1 whitespace-nowrap"
           >
             <PlusIcon size={20} />
             Create Set
@@ -233,9 +231,9 @@ export default function CreateSetForm({ onImport, onBack }: CreateSetFormProps) 
                   />
                 </div>
 
-                <div className="flex gap-10">
+                <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
                   <div>
-                    <span className="block text-lg text-gray-700 mb-1 font-bold">
+                    <span className="block text-lg text-gray-700 mb-1 font-bold italic">
                       Between sides
                     </span>
                     <div className="flex flex-col gap-1">
@@ -263,7 +261,7 @@ export default function CreateSetForm({ onImport, onBack }: CreateSetFormProps) 
                   </div>
 
                   <div>
-                    <span className="block text-lg text-gray-700 mb-1 font-bold">
+                    <span className="block text-lg text-gray-700 mb-1 font-bold italic">
                       Between Flashcards
                     </span>
                     <div className="flex flex-col gap-1">
